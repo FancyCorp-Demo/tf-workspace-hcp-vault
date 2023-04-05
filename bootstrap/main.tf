@@ -40,6 +40,8 @@ provider "vault" {
   address   = data.tfe_outputs.vault_cluster.values.vault_public_endpoint_url
   token     = data.tfe_outputs.vault_cluster.values.vault_admin_token
   namespace = data.tfe_outputs.vault_cluster.values.vault_namespace
+
+  skip_child_token = true
 }
 
 data "vault_policy_document" "admin" {
@@ -54,9 +56,6 @@ resource "vault_policy" "admin" {
   name   = "admin"
   policy = data.vault_policy_document.admin.hcl
 }
-// TODO: Create JWT Auth method for the main config workspace
-
-
 
 module "tfc-auth" {
   source = "hashi-strawb/terraform-cloud-jwt-auth/vault"
