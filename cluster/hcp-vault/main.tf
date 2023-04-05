@@ -19,3 +19,7 @@ resource "hcp_vault_cluster" "this" {
   tier            = var.tier
   public_endpoint = var.public_endpoint
 }
+
+resource "hcp_vault_cluster_admin_token" "terraform" {
+  cluster_id = hcp_vault_cluster.this.cluster_id
+}
