@@ -30,7 +30,7 @@ module "hcp-vault" {
 
   name       = "azure-london"
   cloud      = "Azure"
-  region     = "UK South"
+  region     = "uksouth"
   cidr_block = "10.0.0.0/24"
 
   public_endpoint = true
