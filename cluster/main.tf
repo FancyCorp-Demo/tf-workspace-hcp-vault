@@ -29,7 +29,7 @@ module "hcp-vault" {
   source = "./hcp-vault"
 
   name       = "azure-london"
-  cloud      = "Azure"
+  cloud      = "azure"
   region     = "uksouth"
   cidr_block = "10.0.0.0/24"
 
