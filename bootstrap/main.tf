@@ -64,7 +64,8 @@ resource "vault_policy" "admin" {
 
 module "tfc-auth" {
   source  = "hashi-strawb/terraform-cloud-jwt-auth/vault"
-  version = ">= 0.2.0"
+  version = ">= 0.2.1"
+  #source = "./terraform-vault-terraform-cloud-jwt-auth"
 
   terraform = {
     org = "fancycorp"
