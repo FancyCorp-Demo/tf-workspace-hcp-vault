@@ -17,6 +17,9 @@ terraform {
     vault = {
       source = "hashicorp/vault"
     }
+    tfe = {
+      source = "hashicorp/tfe"
+    }
   }
 }
 
@@ -25,10 +28,14 @@ terraform {
 // so instead we use a child workspace for this
 // https://github.com/hashicorp/terraform-provider-vault/issues/1198
 
+provider "tfe" {
+  version      = ">= 0.43.0"
+  organization = "fancycorp"
+}
+
 
 data "tfe_outputs" "vault_cluster" {
-  organization = "fancycorp"
-  workspace    = "vault"
+  workspace = "vault"
 }
 
 
