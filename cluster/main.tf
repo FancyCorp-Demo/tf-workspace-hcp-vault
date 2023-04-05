@@ -9,7 +9,6 @@ terraform {
   }
 }
 
-// Pin the version
 terraform {
   required_providers {
     hcp = {
@@ -36,5 +35,3 @@ module "hcp-vault" {
   public_endpoint = true
 }
 
-// TODO: Create Management policy
-// TODO: Create JWT Auth method for Management Workspace
