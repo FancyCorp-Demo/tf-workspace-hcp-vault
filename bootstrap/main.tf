@@ -18,7 +18,8 @@ terraform {
       source = "hashicorp/vault"
     }
     tfe = {
-      source = "hashicorp/tfe"
+      source  = "hashicorp/tfe"
+      version = ">= 0.43.0"
     }
   }
 }
@@ -29,7 +30,6 @@ terraform {
 // https://github.com/hashicorp/terraform-provider-vault/issues/1198
 
 provider "tfe" {
-  version      = ">= 0.43.0"
   organization = "fancycorp"
 }
 
@@ -47,8 +47,6 @@ provider "vault" {
   address   = data.tfe_outputs.vault_cluster.values.vault_public_endpoint_url
   token     = data.tfe_outputs.vault_cluster.values.vault_admin_token
   namespace = data.tfe_outputs.vault_cluster.values.vault_namespace
-
-  skip_child_token = true
 }
 
 data "vault_policy_document" "admin" {
@@ -65,7 +63,8 @@ resource "vault_policy" "admin" {
 }
 
 module "tfc-auth" {
-  source = "hashi-strawb/terraform-cloud-jwt-auth/vault"
+  source  = "hashi-strawb/terraform-cloud-jwt-auth/vault"
+  version = ">= 0.2.0"
 
   terraform = {
     org = "fancycorp"
