@@ -1,3 +1,14 @@
+terraform {
+  cloud {
+    organization = "fancycorp"
+
+
+    workspaces {
+      name = "vault-config"
+    }
+  }
+}
+
 
 # As a test, lookup self
 
