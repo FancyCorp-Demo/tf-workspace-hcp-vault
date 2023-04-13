@@ -31,12 +31,11 @@ module "hcp-vault" {
   #  cloud      = "azure"
   #  region     = "uksouth"
 
-  name   = "aws-london"
-  cloud  = "aws"
-  region = "eu-west-2"
+  name   = var.hcp_vault_cluster_name
+  cloud  = var.hcp_platform
+  region = var.hcp_region
 
-  cidr_block = "10.0.0.0/24"
-
+  # To make demos easier
   public_endpoint = true
 }
 
