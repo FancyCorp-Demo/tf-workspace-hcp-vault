@@ -66,6 +66,7 @@ resource "vault_aws_secret_backend" "aws" {
 
 
 // Rotate root immediately, so only Vault knows it
+/*
 resource "time_rotating" "aws" {
   rotation_days = 30
 }
@@ -84,11 +85,39 @@ resource "vault_generic_endpoint" "rotate-root" {
 }
 EOT
 }
+*/
 
 
 # TODO: Fix this issue. Currently, we have:
-# * aws_iam_access_key.vault-aws-secrets creates some IAM creds
-# * vault_generic_endpoint.rotate-root rotates those creds
+#
+# First TF Apply..
+# aws_iam_access_key.vault-aws-secrets creates some IAM creds
+#   at this point, the IAM user has a single set of Access Keys
+# vault_generic_endpoint.rotate-root rotates those creds
+#   at this point, the IAM user has a single (different) set of Access Keys
+#   AKIAYG76LF7ZWO3QZM7Y
+#
+# Second TF Apply...
+# TF detects that aws_iam_access_key.vault-aws-secrets no longer exists, and recreates it
+#   at this point, the IAM user has two sets of Access Keys (which would block the next rotate-root)
+#   AKIAYG76LF7ZUHNKFGNY is the new one
+#
+# TF Destroy...
+# TF destroys the IAM crds that it created
+#   destroy fails, because AKIAYG76LF7ZWO3QZM7Y still exists
+#   (i.e. the one created by TF 
+
+# So what we need is:
+#   Some way for the for the workspace to avoid recreating the creds
+#     e.g. to add a TF Var to say whether or not to create aws_iam_access_key.vault-aws-secrets
+#     or use a data source to check if one already exists
+#
+#   Force Destroy the IAM User
+#     i.e. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user#force_destroy
+#     though this does not solve the problem that the next rotate-root will fail
+#
+#   Or...
+#     just make the time_rotating rotate-root optional behaviour
 
 
 
