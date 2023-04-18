@@ -66,6 +66,8 @@ resource "vault_aws_secret_backend" "aws" {
 
 
 // Rotate root immediately, so only Vault knows it
+
+/*
 resource "time_rotating" "aws" {
   rotation_days = 30
 }
@@ -84,6 +86,9 @@ resource "vault_generic_endpoint" "rotate-root" {
 }
 EOT
 }
+*/
+
+# TODO: This results in 
 
 
 
