@@ -66,8 +66,6 @@ resource "vault_aws_secret_backend" "aws" {
 
 
 // Rotate root immediately, so only Vault knows it
-
-/*
 resource "time_rotating" "aws" {
   rotation_days = 30
 }
@@ -86,9 +84,11 @@ resource "vault_generic_endpoint" "rotate-root" {
 }
 EOT
 }
-*/
 
-# TODO: This results in 
+
+# TODO: Fix this issue. Currently, we have:
+# * aws_iam_access_key.vault-aws-secrets creates some IAM creds
+# * vault_generic_endpoint.rotate-root rotates those creds
 
 
 
