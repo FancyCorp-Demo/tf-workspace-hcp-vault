@@ -14,6 +14,9 @@ terraform {
     hcp = {
       source = "hashicorp/hcp"
     }
+    multispace = {
+      source = "lucymhdavies/multispace"
+    }
   }
 }
 
@@ -49,6 +52,7 @@ module "hcp-vault" {
 //
 
 resource "multispace_run" "destroy_downstream" {
+organization = "fancycorp"
   workspace = "vault-config-bootstrap"
 
   depends_on = [

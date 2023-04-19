@@ -21,6 +21,9 @@ terraform {
       source  = "hashicorp/tfe"
       version = ">= 0.43.0"
     }
+    multispace = {
+      source = "lucymhdavies/multispace"
+    }
   }
 }
 
@@ -96,7 +99,8 @@ module "tfc-auth" {
 //
 
 resource "multispace_run" "destroy_downstream" {
-  workspace = "vault-config"
+  organization = "fancycorp"
+  workspace    = "vault-config"
 
   depends_on = [
     module.tfc-auth
