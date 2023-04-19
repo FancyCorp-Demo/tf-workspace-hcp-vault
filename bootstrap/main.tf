@@ -80,7 +80,33 @@ module "tfc-auth" {
   roles = [
     {
       workspace_name = "vault-config"
-      token_policies = ["admin"]
+      token_policies = [
+        vault_policy.admin.name
+      ]
     }
   ]
 }
+
+
+
+
+//
+// TODO: experiment with this...
+// Protector for downstream workspace: destroy downstream before destroying this
+//
+
+resource "multispace_run" "destroy_downstream" {
+  workspace = "vault-config"
+
+  depends_on = [
+    module.tfc-auth
+  ]
+
+  # Do not actually kick off an Apply, but create the resource so we can Destroy later
+  do_apply = false
+
+  # Kick off the destroy, and wait for it to succeed
+  # (this is default behaviour, but make it explicit)
+  wait_for_destroy = true
+}
+
