@@ -47,12 +47,10 @@ module "hcp-vault" {
 
 
 //
-// Serves two purposes:
-// * Workaround for Run Triggers not auto-applying downstream workspaces
-// * Protector for downstream workspace: destroy downstream before destroying this
+// Protector for downstream workspace: destroy downstream before destroying this
 //
 
-resource "multispace_run" "downstream" {
+resource "multispace_run" "destroy_downstream" {
   organization = "fancycorp"
   workspace    = "vault-config-bootstrap"
 
@@ -60,8 +58,10 @@ resource "multispace_run" "downstream" {
     module.hcp-vault
   ]
 
-  # Kick off the apply/destroy, and wait for it to succeed
+  # Do not actually kick off an Apply, but create the resource so we can Destroy later
+  do_apply = false
+
+  # Kick off the destroy, and wait for it to succeed
   # (this is default behaviour, but make it explicit)
-  wait_for_apply   = true
   wait_for_destroy = true
 }
