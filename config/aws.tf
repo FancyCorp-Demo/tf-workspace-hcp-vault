@@ -128,19 +128,5 @@ resource "vault_aws_secret_backend_role" "test" {
 
   user_path = "/vault/"
 
-  policy_document = <<EOT
-{
-    "Version": "2012-10-17",
-    "Statement": [
-        {
-            "Sid": "VisualEditor0",
-            "Effect": "Allow",
-            "Action": [
-                "s3:List*"
-            ],
-            "Resource": "*"
-        }
-    ]
-}
-EOT
+  policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
 }
