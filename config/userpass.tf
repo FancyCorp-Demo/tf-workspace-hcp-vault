@@ -24,3 +24,7 @@ resource "vault_generic_endpoint" "admin" {
 }
 EOT
 }
+
+output "admin_password" {
+  value = random_pet.admin_password.id
+}
