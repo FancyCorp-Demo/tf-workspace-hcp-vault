@@ -37,9 +37,9 @@ output "azure_resource_group" {
 data "azuread_client_config" "current" {}
 resource "azuread_application" "vault_application" {
   display_name = "strawb-vault-demo"
-  #owners       = [data.azuread_client_config.current.object_id]
   owners = [
-    "9368d8f2-1fcd-4e62-b950-8c19616924b4"
+    data.azuread_client_config.current.object_id,
+    "9368d8f2-1fcd-4e62-b950-8c19616924b4" # Lucy
     # TODO: LD created by hand... for now, because we don't have permission to set to the thing above yet
     # Figure out permissions needed for this
     #
@@ -182,10 +182,9 @@ data "azurerm_subscription" "current" {}
 resource "azurerm_role_assignment" "vault_role_assignment" {
 
   # TODO: move this to be scoped to the RG
-  # TODO: make it a Contributor
   scope                = data.azurerm_subscription.current.id
   principal_id         = azuread_service_principal.vault_service_principal.object_id
-  role_definition_name = "Owner"
+  role_definition_name = "Contributor"
 }
 
 
