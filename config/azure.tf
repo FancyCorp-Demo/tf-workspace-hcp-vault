@@ -35,11 +35,16 @@ output "azure_resource_group" {
 # Originally created based on tutorial https://developer.hashicorp.com/vault/tutorials/secrets-management/azure-secrets
 # then imported into TF
 data "azuread_client_config" "current" {}
+data "azuread_user" "lucy" {
+  user_principal_name = "lucy.davinhart_hashicorp.com#EXT#@terraformhashicorp.onmicrosoft.com"
+}
+
 resource "azuread_application" "vault_application" {
   display_name = "strawb-vault-demo"
   owners = [
     data.azuread_client_config.current.object_id,
-    "9368d8f2-1fcd-4e62-b950-8c19616924b4" # Lucy
+    data.azuread_user.lucy.id,
+
     # TODO: LD created by hand... for now, because we don't have permission to set to the thing above yet
     # Figure out permissions needed for this
     #
@@ -181,8 +186,10 @@ output "azure_graph_explorer_service_principal_owned_objects" {
 data "azurerm_subscription" "current" {}
 resource "azurerm_role_assignment" "vault_role_assignment" {
 
-  # TODO: move this to be scoped to the RG
-  scope                = data.azurerm_subscription.current.id
+  # TODO: move this to be scoped to the RG... if that's possible
+  #scope                = azurerm_resource_group.rg.id
+  scope = data.azurerm_subscription.current.id
+
   principal_id         = azuread_service_principal.vault_service_principal.object_id
   role_definition_name = "Contributor"
 }
