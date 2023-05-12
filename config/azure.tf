@@ -187,8 +187,8 @@ data "azurerm_subscription" "current" {}
 resource "azurerm_role_assignment" "vault_role_assignment" {
 
   # TODO: move this to be scoped to the RG... if that's possible
-  #scope                = azurerm_resource_group.rg.id
-  scope = data.azurerm_subscription.current.id
+  scope = azurerm_resource_group.rg.id
+  #scope = data.azurerm_subscription.current.id
 
   principal_id         = azuread_service_principal.vault_service_principal.object_id
   role_definition_name = "Contributor"
