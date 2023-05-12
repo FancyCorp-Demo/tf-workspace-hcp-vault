@@ -23,7 +23,7 @@ resource "azurerm_resource_group" "rg" {
 
 # Here's our RG in the Azure portal
 output "azure_resource_group" {
-  value = "https://portal.azure.com/#/resource/${azurerm_resource_group.rg.id}"
+  value = "https://portal.azure.com/#/resource${azurerm_resource_group.rg.id}"
 }
 
 
@@ -37,7 +37,18 @@ output "azure_resource_group" {
 data "azuread_client_config" "current" {}
 resource "azuread_application" "vault_application" {
   display_name = "strawb-vault-demo"
-  owners       = [data.azuread_client_config.current.object_id]
+  #owners       = [data.azuread_client_config.current.object_id]
+  owners = [
+    "9368d8f2-1fcd-4e62-b950-8c19616924b4"
+    # TODO: LD created by hand... for now, because we don't have permission to set to the thing above yet
+    # Figure out permissions needed for this
+    #
+    # This is what we have for now, but it's insufficient
+    #     https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/roleObjectId/9360feb5-f418-4baa-8175-e2a00bac4301/roleId/9360feb5-f418-4baa-8175-e2a00bac4301/roleTemplateId/9360feb5-f418-4baa-8175-e2a00bac4301/roleName/Directory%20Writers/isRoleCustom~/false/resourceScopeId/%2F/resourceId/0e3e2e88-8caf-41ca-b4da-e3b33b6c52ec
+    #
+    # Maybe the required_resource_access stuff below is what needs to be added to the TFC role
+
+  ]
 
   required_resource_access {
     resource_app_id = "00000003-0000-0000-c000-000000000000" # Microsoft Graph
@@ -171,9 +182,10 @@ data "azurerm_subscription" "current" {}
 resource "azurerm_role_assignment" "vault_role_assignment" {
 
   # TODO: move this to be scoped to the RG
+  # TODO: make it a Contributor
   scope                = data.azurerm_subscription.current.id
   principal_id         = azuread_service_principal.vault_service_principal.object_id
-  role_definition_name = "Owner" # TODO: drop down to Contributor
+  role_definition_name = "Owner"
 }
 
 
