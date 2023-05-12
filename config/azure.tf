@@ -189,6 +189,10 @@ resource "azurerm_role_assignment" "vault_role_assignment" {
 }
 
 
+resource "azuread_application_password" "vault_role_client_secret" {
+  application_object_id = azuread_application.vault_application.object_id
+  display_name          = "Vault Creds"
+}
 
 
 /*
