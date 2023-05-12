@@ -234,22 +234,3 @@ resource "vault_azure_secret_backend_role" "example" {
     scope     = azurerm_resource_group.rg.id
   }
 }
-
-/*
-resource "vault_generic_endpoint" "azure_role" {
-  path                 = "${vault_azure_secret_backend.azure.path}/roles/edu-app"
-  ignore_absent_fields = true
-
-  data_json = <<EOT
-{
-    "azure_roles": [
-        {
-            "role_name": "Contributor",
-            "scope": "/subscriptions/14692f20-9428-451b-8298-102ed4e39c2a/resourceGroups/strawb-vault-demo"
-        }
-    ],
-    "ttl": 3600
-}
-EOT
-}
-*/
