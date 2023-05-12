@@ -187,36 +187,43 @@ data "azurerm_subscription" "current" {}
 resource "azurerm_role_assignment" "vault_role_assignment" {
 
   # TODO: move this to be scoped to the RG... if that's possible
-  scope = azurerm_resource_group.rg.id
-  #scope = data.azurerm_subscription.current.id
+  #scope = azurerm_resource_group.rg.id
+  scope = data.azurerm_subscription.current.id
 
-  principal_id         = azuread_service_principal.vault_service_principal.object_id
+  principal_id = azuread_service_principal.vault_service_principal.object_id
+  # TODO: Drop this down to Contributor... if possible
   role_definition_name = "Contributor"
+  #role_definition_name = "Owner"
 }
 
 
 resource "azuread_application_password" "vault_role_client_secret" {
   application_object_id = azuread_application.vault_application.object_id
   display_name          = "Vault Creds"
+
+  lifecycle {
+    replace_triggered_by = [azurerm_role_assignment.vault_role_assignment]
+  }
 }
 
 
-/*
+
 
 # https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/azure_secret_backend
 resource "vault_azure_secret_backend" "azure" {
   use_microsoft_graph_api = true
-  subscription_id         = "11111111-2222-3333-4444-111111111111"
-  tenant_id               = "11111111-2222-3333-4444-222222222222"
-  client_id               = "11111111-2222-3333-4444-333333333333"
-  client_secret           = "12345678901234567890"
+  subscription_id         = data.azurerm_subscription.current.subscription_id
+  tenant_id               = "0e3e2e88-8caf-41ca-b4da-e3b33b6c52ec" # TODO: can we get this from a data source?
+  client_id               = azuread_application.vault_application.application_id
+  client_secret           = azuread_application_password.vault_role_client_secret.value
   environment             = "AzurePublicCloud"
 
-  path = "azure-2"
+  path = "azure"
 }
 
 
 # https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/azure_secret_backend_role
+/*
 resource "vault_azure_secret_backend_role" "generated_role" {
   backend                     = vault_azure_secret_backend.azure.path
   role                        = "generated_role"
