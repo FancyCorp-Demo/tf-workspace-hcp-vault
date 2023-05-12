@@ -223,18 +223,14 @@ resource "vault_azure_secret_backend" "azure" {
 
 
 # https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/azure_secret_backend_role
-/*
-resource "vault_azure_secret_backend_role" "generated_role" {
-  backend                     = vault_azure_secret_backend.azure.path
-  role                        = "generated_role"
-  ttl                         = 300
-  max_ttl                     = 600
+resource "vault_azure_secret_backend_role" "example" {
+  backend = vault_azure_secret_backend.azure.path
+  role    = "edu-app"
+  ttl     = 300
+  max_ttl = 3600
 
   azure_roles {
-    role_name = "Reader"
-    scope =  "/subscriptions/${var.subscription_id}/resourceGroups/azure-vault-group"
+    role_name = "Contributor"
+    scope     = azurerm_resource_group.rg.id
   }
 }
-*/
-
-
