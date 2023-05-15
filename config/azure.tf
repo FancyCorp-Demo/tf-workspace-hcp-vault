@@ -23,7 +23,7 @@ resource "azurerm_resource_group" "rg" {
 
 # Here's our RG in the Azure portal
 output "azure_resource_group" {
-  value = "https://portal.azure.com/#/resource${azurerm_resource_group.rg.id}"
+  value = "https://portal.azure.com/#@azure.hashicorptest.com/resource${azurerm_resource_group.rg.id}/overview"
 }
 
 
