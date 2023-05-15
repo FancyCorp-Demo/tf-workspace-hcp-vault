@@ -186,10 +186,7 @@ output "azure_graph_explorer_service_principal_owned_objects" {
 data "azurerm_subscription" "current" {}
 resource "azurerm_role_assignment" "vault_role_assignment" {
 
-  # TODO: move this to be scoped to the RG... if that's possible
-  scope = azurerm_resource_group.rg.id
-  #scope = data.azurerm_subscription.current.id
-
+  scope        = azurerm_resource_group.rg.id
   principal_id = azuread_service_principal.vault_service_principal.object_id
 
   # Owner, to have permissions to delegate permissions
