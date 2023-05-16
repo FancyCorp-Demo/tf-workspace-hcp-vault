@@ -1,6 +1,14 @@
+resource "time_rotating" "admin_password" {
+  rotation_hours = 1
+}
+
 resource "random_pet" "admin_password" {
   length    = 5
   separator = " "
+
+  lifecycle {
+    replace_triggered_by = [time_rotating.admin_password]
+  }
 }
 
 
