@@ -232,4 +232,8 @@ resource "vault_azure_secret_backend_role" "example" {
     role_name = "Contributor"
     scope     = azurerm_resource_group.rg.id
   }
+
+  # Delete the AAD App immediately
+  # https://developer.hashicorp.com/vault/docs/secrets/azure#permanently-delete-azure-objects
+  permanently_delete = true
 }
