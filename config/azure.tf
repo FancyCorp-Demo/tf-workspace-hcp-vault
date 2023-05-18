@@ -39,11 +39,12 @@ data "azuread_user" "lucy" {
   user_principal_name = "lucy.davinhart_hashicorp.com#EXT#@terraformhashicorp.onmicrosoft.com"
 }
 
+
 resource "azuread_application" "vault_application" {
   display_name = "strawb-vault-demo"
   owners = [
     data.azuread_client_config.current.object_id,
-    data.azuread_user.lucy.id,
+    #    data.azuread_user.lucy.id,
 
     # TODO: LD created by hand... for now, because we don't have permission to set to the thing above yet
     # Figure out permissions needed for this
@@ -170,6 +171,30 @@ resource "azuread_service_principal" "vault_service_principal" {
   application_id = azuread_application.vault_application.application_id
 }
 
+
+
+
+#
+# Grant our App SP all the permissions it needs in AAD
+#
+
+data "azuread_application_published_app_ids" "well_known" {}
+
+data "azuread_service_principal" "msgraph" {
+  application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
+}
+
+resource "azuread_app_role_assignment" "vault_application" {
+  #TODO: foreach
+
+  app_role_id         = data.azuread_service_principal.msgraph.app_role_ids["Application.ReadWrite.OwnedBy"]
+  principal_object_id = azuread_service_principal.vault_service_principal.object_id
+  resource_object_id  = data.azuread_service_principal.msgraph.object_id
+}
+# TODO: also do https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/service_principal_delegated_permission_grant
+
+
+
 output "azure_graph_explorer_service_principal_owned_objects" {
   value = join("",
     [
@@ -200,8 +225,15 @@ resource "azuread_application_password" "vault_role_client_secret" {
   application_object_id = azuread_application.vault_application.object_id
   display_name          = "Vault Creds"
 
+  depends_on = [
+    azuread_app_role_assignment.vault_application,
+    azurerm_role_assignment.vault_role_assignment,
+  ]
   lifecycle {
-    replace_triggered_by = [azurerm_role_assignment.vault_role_assignment]
+    replace_triggered_by = [
+      azuread_app_role_assignment.vault_application,
+      azurerm_role_assignment.vault_role_assignment,
+    ]
   }
 }
 
