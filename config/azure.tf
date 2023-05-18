@@ -40,11 +40,17 @@ data "azuread_user" "lucy" {
 }
 
 
+data "azuread_application_published_app_ids" "well_known" {}
+
+data "azuread_service_principal" "msgraph" {
+  application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
+}
+
 resource "azuread_application" "vault_application" {
   display_name = "strawb-vault-demo"
   owners = [
     data.azuread_client_config.current.object_id,
-    #    data.azuread_user.lucy.id,
+    data.azuread_user.lucy.id,
 
     # TODO: LD created by hand... for now, because we don't have permission to set to the thing above yet
     # Figure out permissions needed for this
@@ -57,7 +63,8 @@ resource "azuread_application" "vault_application" {
   ]
 
   required_resource_access {
-    resource_app_id = "00000003-0000-0000-c000-000000000000" # Microsoft Graph
+    resource_app_id = data.azuread_service_principal.msgraph.application_id
+    #    resource_app_id = "00000003-0000-0000-c000-000000000000" # Microsoft Graph
 
 
     # These permissions are much mroe than is actually required, but good enough for now
@@ -170,31 +177,6 @@ output "azure_application" {
 resource "azuread_service_principal" "vault_service_principal" {
   application_id = azuread_application.vault_application.application_id
 }
-
-
-
-
-#
-# Grant our App SP all the permissions it needs in AAD
-#
-
-data "azuread_application_published_app_ids" "well_known" {}
-
-data "azuread_service_principal" "msgraph" {
-  application_id = data.azuread_application_published_app_ids.well_known.result.MicrosoftGraph
-}
-
-resource "azuread_app_role_assignment" "vault_application" {
-  #TODO: foreach
-
-  app_role_id         = data.azuread_service_principal.msgraph.app_role_ids["Application.ReadWrite.OwnedBy"]
-  principal_object_id = azuread_service_principal.vault_service_principal.object_id
-  resource_object_id  = data.azuread_service_principal.msgraph.object_id
-}
-# TODO: also do https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/service_principal_delegated_permission_grant
-
-
-
 output "azure_graph_explorer_service_principal_owned_objects" {
   value = join("",
     [
@@ -204,6 +186,38 @@ output "azure_graph_explorer_service_principal_owned_objects" {
     ]
   )
 }
+
+
+
+
+#
+# Azure AD Permissions
+#
+
+resource "azuread_app_role_assignment" "vault_application" {
+  # All permissions for full usage are mentioned here:
+  # https://developer.hashicorp.com/vault/tutorials/secrets-management/azure-secrets
+  # https://developer.hashicorp.com/vault/docs/secrets/azure#ms-graph-api-permissions
+  # But I've found this one to be sufficient for my demo
+  for_each = toset([
+    "Application.ReadWrite.OwnedBy"
+  ])
+
+  app_role_id         = data.azuread_service_principal.msgraph.app_role_ids[each.key]
+  principal_object_id = azuread_service_principal.vault_service_principal.object_id
+  resource_object_id  = data.azuread_service_principal.msgraph.object_id
+
+
+  # We could also grant Delegated permissions
+  # https://registry.terraform.io/providers/hashicorp/azuread/latest/docs/resources/service_principal_delegated_permission_grant
+  # But those do not seem to be needed either
+}
+
+
+
+#
+# Azure RM Permissions
+#
 
 
 # Creates a role assignment which controls the permissions the service
