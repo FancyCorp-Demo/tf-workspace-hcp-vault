@@ -235,5 +235,6 @@ resource "vault_azure_secret_backend_role" "example" {
 
   # Delete the AAD App immediately
   # https://developer.hashicorp.com/vault/docs/secrets/azure#permanently-delete-azure-objects
-  permanently_delete = true
+  # but not yet available in the provider
+  #permanently_delete = true
 }
