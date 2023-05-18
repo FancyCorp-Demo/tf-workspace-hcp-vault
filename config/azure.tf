@@ -205,11 +205,26 @@ resource "azuread_application_password" "vault_role_client_secret" {
   }
 }
 
+resource "time_sleep" "wait_30_seconds" {
+  depends_on = [azuread_application_password.vault_role_client_secret]
+  lifecycle {
+    replace_triggered_by = [azuread_application_password.vault_role_client_secret]
+  }
+
+  create_duration = "30s"
+}
+
 
 
 
 # https://registry.terraform.io/providers/hashicorp/vault/latest/docs/resources/azure_secret_backend
 resource "vault_azure_secret_backend" "azure" {
+  # Wait some time between creation of the credentials and using them to configure Vault
+  # as otherwise we get errors of the form:
+  # AADSTS7000215: Invalid client secret provided. Ensure the secret being sent in the request is the client secret value, not the client secret ID, for a secret added to app
+  depends_on = [time_sleep.wait_30_seconds]
+
+
   use_microsoft_graph_api = true
   subscription_id         = data.azurerm_subscription.current.subscription_id
   tenant_id               = "0e3e2e88-8caf-41ca-b4da-e3b33b6c52ec" # TODO: can we get this from a data source?
