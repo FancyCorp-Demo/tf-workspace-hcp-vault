@@ -49,118 +49,19 @@ data "azuread_service_principal" "msgraph" {
 resource "azuread_application" "vault_application" {
   display_name = "strawb-vault-demo"
   owners = [
+    # Owned by the workspace...
     data.azuread_client_config.current.object_id,
+
+    # But also owned by me, so I can easily find it
     data.azuread_user.lucy.id,
-
-    # TODO: LD created by hand... for now, because we don't have permission to set to the thing above yet
-    # Figure out permissions needed for this
-    #
-    # This is what we have for now, but it's insufficient
-    #     https://portal.azure.com/#view/Microsoft_Azure_PIMCommon/UserRolesViewModelMenuBlade/~/members/roleObjectId/9360feb5-f418-4baa-8175-e2a00bac4301/roleId/9360feb5-f418-4baa-8175-e2a00bac4301/roleTemplateId/9360feb5-f418-4baa-8175-e2a00bac4301/roleName/Directory%20Writers/isRoleCustom~/false/resourceScopeId/%2F/resourceId/0e3e2e88-8caf-41ca-b4da-e3b33b6c52ec
-    #
-    # Maybe the required_resource_access stuff below is what needs to be added to the TFC role
-
   ]
 
   required_resource_access {
     resource_app_id = data.azuread_service_principal.msgraph.application_id
-    #    resource_app_id = "00000003-0000-0000-c000-000000000000" # Microsoft Graph
 
-
-    # These permissions are much mroe than is actually required, but good enough for now
     resource_access {
-      # ???
-      id   = "e1fe6dd8-ba31-4d61-89e7-88639da4683d"
-      type = "Scope"
-    }
-    resource_access {
-      # Read all groups  
-      id   = "5f8c59db-677d-491f-a6b8-5f174b11ec1d"
-      type = "Scope"
-    }
-    resource_access {
-      # Read and write all groups  
-      id   = "4e46008b-f24c-477d-8fff-7bb4ec7aafe0"
-      type = "Scope"
-    }
-    resource_access {
-      # Read directory data
-      id   = "06da0dbc-49e2-44d2-8312-53f166ab848a"
-      type = "Scope"
-    }
-    resource_access {
-      # Read and write directory data
-      id   = "c5366453-9fb0-48a5-a156-24f0c49a4b84"
-      type = "Scope"
-    }
-    resource_access {
-      # Access directory as the signed in user 
-      id   = "0e263e50-5827-48a4-b97c-d940288653c7"
-      type = "Scope"
-    }
-    resource_access {
-      # ???
-      id   = "c79f8feb-a9db-4090-85f9-90d820caa0eb"
-      type = "Scope"
-    }
-    resource_access {
-      # ???
-      id   = "bdfbf15f-ee85-4955-8675-146e8e5296b5"
-      type = "Scope"
-    }
-    resource_access {
-      # ???
-      id   = "bc024368-1153-4739-b217-4326f2e966d0"
-      type = "Scope"
-    }
-    resource_access {
-      # ???
-      id   = "f81125ac-d3b7-4573-a3b2-7099cc39df9e"
-      type = "Scope"
-    }
-    resource_access {
-      # Read and write all groups
-      id   = "62a82d76-70ea-41e2-9197-370581804d09"
-      type = "Role"
-    }
-    resource_access {
-      # Read all groups
-      id   = "5b567255-7703-4780-807c-7be8301ae99b"
-      type = "Role"
-    }
-    resource_access {
-      # ???
+      # Application.ReadWrite.OwnedBy
       id   = "18a4783c-866b-4cc7-a460-3d5e5662c884"
-      type = "Role"
-    }
-    resource_access {
-      # ???
-      id   = "1bfefb4e-e0b5-418b-a88f-73c46d2cc8e9"
-      type = "Role"
-    }
-    resource_access {
-      # Read directory data
-      id   = "7ab1d382-f21e-4acd-a863-ba3e13f7da61"
-      type = "Role"
-    }
-    resource_access {
-      # Read and write directory data
-      id   = "19dbc75e-c2e2-444c-a770-ec69d8559fc7"
-      type = "Role"
-    }
-    resource_access {
-      # ???
-      id   = "9a5d68dd-52b0-4cc2-bd40-abcf44ac3a30"
-      type = "Role"
-    }
-    resource_access {
-      # ???
-      id   = "98830695-27a2-44f7-8c18-0c3ebc9698f6"
-      type = "Role"
-    }
-    resource_access {
-      # ???
-      id   = "dbaae8cf-10b5-4b86-a4a1-f871c94c6695"
       type = "Role"
     }
   }
