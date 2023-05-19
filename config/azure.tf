@@ -77,6 +77,14 @@ output "azure_application" {
 # application registration.
 resource "azuread_service_principal" "vault_service_principal" {
   application_id = azuread_application.vault_application.application_id
+
+  owners = [
+    # Owned by the workspace...
+    data.azuread_client_config.current.object_id,
+
+    # But also owned by me, so I can easily find it
+    data.azuread_user.lucy.id,
+  ]
 }
 output "azure_graph_explorer_service_principal_owned_objects" {
   value = join("",
