@@ -35,9 +35,12 @@ output "azure_resource_group" {
 # Originally created based on tutorial https://developer.hashicorp.com/vault/tutorials/secrets-management/azure-secrets
 # then imported into TF
 data "azuread_client_config" "current" {}
+
+/*
 data "azuread_user" "lucy" {
   user_principal_name = "lucy.davinhart_hashicorp.com#EXT#@terraformhashicorp.onmicrosoft.com"
 }
+*/
 
 
 data "azuread_application_published_app_ids" "well_known" {}
@@ -53,7 +56,7 @@ resource "azuread_application" "vault_application" {
     data.azuread_client_config.current.object_id,
 
     # But also owned by me, so I can easily find it
-    data.azuread_user.lucy.id,
+    #data.azuread_user.lucy.id,
   ]
 
   required_resource_access {
@@ -82,7 +85,7 @@ resource "azuread_service_principal" "vault_service_principal" {
     data.azuread_client_config.current.object_id,
 
     # But also owned by me, so I can easily find it
-    data.azuread_user.lucy.id,
+    # data.azuread_user.lucy.id,
   ]
 }
 output "azure_graph_explorer_service_principal_owned_objects" {
