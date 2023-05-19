@@ -60,8 +60,7 @@ resource "azuread_application" "vault_application" {
     resource_app_id = data.azuread_service_principal.msgraph.application_id
 
     resource_access {
-      # Application.ReadWrite.OwnedBy
-      id   = "18a4783c-866b-4cc7-a460-3d5e5662c884"
+      id   = data.azuread_service_principal.msgraph.app_role_ids["Application.ReadWrite.OwnedBy"]
       type = "Role"
     }
   }
