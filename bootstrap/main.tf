@@ -19,10 +19,7 @@ terraform {
     }
     tfe = {
       source  = "hashicorp/tfe"
-      version = ">= 0.43.0"
-    }
-    multispace = {
-      source = "lucymhdavies/multispace"
+      version = ">= 0.45.0" # for tfe_workspace_run
     }
   }
 }
@@ -97,19 +94,25 @@ module "tfc-auth" {
 // Protector for downstream workspace: destroy downstream before destroying this
 //
 
-resource "multispace_run" "destroy_downstream" {
-  organization = "fancycorp"
-  workspace    = "vault-config"
+data "tfe_workspace" "downstream" {
+  name = "vault-config"
+}
+resource "tfe_workspace_run" "destroy_downstream" {
+  workspace_id = data.tfe_workspace.downstream.id
 
   depends_on = [
     module.tfc-auth
   ]
 
   # Do not actually kick off an Apply, but create the resource so we can Destroy later
-  do_apply = false
+  # (i.e. we're excluding the apply{} block
 
   # Kick off the destroy, and wait for it to succeed
   # (this is default behaviour, but make it explicit)
-  wait_for_destroy = true
+  destroy {
+    manual_confirm = false # Let TF confirm this itself
+    retry          = false # Only try once
+    wait_for_run   = true  # Wait until destroy has finished before removing this resource
+  }
 }
 

@@ -14,8 +14,9 @@ terraform {
     hcp = {
       source = "hashicorp/hcp"
     }
-    multispace = {
-      source = "lucymhdavies/multispace"
+    tfe = {
+      source  = "hashicorp/tfe"
+      version = ">= 0.45.0" # for tfe_workspace_run
     }
   }
 }
@@ -50,18 +51,29 @@ module "hcp-vault" {
 // Protector for downstream workspace: destroy downstream before destroying this
 //
 
-resource "multispace_run" "destroy_downstream" {
+provider "tfe" {
   organization = "fancycorp"
-  workspace    = "vault-config-bootstrap"
+}
+
+data "tfe_workspace" "downstream" {
+  name = "vault-config-bootstrap"
+}
+resource "tfe_workspace_run" "destroy_downstream" {
+  workspace_id = data.tfe_workspace.downstream.id
 
   depends_on = [
     module.hcp-vault
   ]
 
   # Do not actually kick off an Apply, but create the resource so we can Destroy later
-  do_apply = false
+  # (i.e. we're excluding the apply{} block
 
   # Kick off the destroy, and wait for it to succeed
   # (this is default behaviour, but make it explicit)
-  wait_for_destroy = true
+  destroy {
+    manual_confirm = false # Let TF confirm this itself
+    retry          = false # Only try once
+    wait_for_run   = true  # Wait until destroy has finished before removing this resource
+  }
 }
+
