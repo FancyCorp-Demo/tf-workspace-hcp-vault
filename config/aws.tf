@@ -1,9 +1,104 @@
+#
+# AWS Config
+#
+
+# Based on https://github.com/hashicorp/hc-sec-demos/blob/main/demos/vault/aws_secrets_engine/aws.tf
+
 provider "aws" {
   region = "eu-west-2"
 }
 data "aws_caller_identity" "current" {}
 
+locals {
+  # Can't use caller identity, as TFC is creating this, not me personally
+  # my_email = split("/", data.aws_caller_identity.current.arn)[2]
 
+  my_email = "lucy.davinhart@hashicorp.com"
+}
+
+data "aws_region" "current" {}
+
+# Vault Mount AWS Config Setup
+
+data "aws_iam_policy" "demo_user_permissions_boundary" {
+  name = "DemoUser"
+}
+
+resource "aws_iam_user" "vault_mount_user" {
+  name                 = "demo-${local.my_email}"
+  permissions_boundary = data.aws_iam_policy.demo_user_permissions_boundary.arn
+  force_destroy        = true
+}
+
+resource "aws_iam_user_policy" "vault_mount_user" {
+  user   = aws_iam_user.vault_mount_user.name
+  policy = data.aws_iam_policy.demo_user_permissions_boundary.policy
+  name   = "DemoUserInlinePolicy"
+}
+
+resource "aws_iam_access_key" "vault_mount_user" {
+  user = aws_iam_user.vault_mount_user.name
+}
+
+
+#
+# Vault Config
+#
+
+
+
+resource "vault_aws_secret_backend" "aws" {
+  path = "aws/hashicorp/sandbox"
+
+  access_key = aws_iam_access_key.vault_mount_user.id
+  secret_key = aws_iam_access_key.vault_mount_user.secret
+
+  username_template = "{{ if (eq .Type \"STS\") }}{{ printf \"${aws_iam_user.vault_mount_user.name}-%s-%s\" (random 20) (unix_time) | truncate 32 }}{{ else }}{{ printf \"${aws_iam_user.vault_mount_user.name}-vault-%s-%s\" (unix_time) (random 20) | truncate 60 }}{{ end }}"
+
+
+  lifecycle {
+    # These will be updated almost immediately by rotate-root
+    ignore_changes = [
+      access_key,
+      secret_key,
+    ]
+  }
+}
+
+
+data "aws_iam_policy_document" "vault_dynamic_iam_user_policy" {
+  statement {
+    sid       = "VaultDemoUserDescribeEC2Regions"
+    actions   = ["ec2:DescribeRegions"]
+    resources = ["*"]
+  }
+}
+
+resource "vault_aws_secret_backend_role" "test" {
+  backend         = vault_aws_secret_backend.aws.path
+  name            = "test"
+  credential_type = "iam_user"
+
+  user_path = "/vault/"
+
+  # policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
+
+  permissions_boundary_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
+  policy_document          = data.aws_iam_policy_document.vault_dynamic_iam_user_policy.json
+}
+
+
+
+
+
+
+
+#
+# The old stuff...
+#
+
+
+/*
 resource "aws_iam_user" "vault-aws-secrets" {
   name = "aws-secrets"
   path = "/vault/"
@@ -49,20 +144,9 @@ resource "aws_iam_access_key" "vault-aws-secrets" {
   user = aws_iam_user.vault-aws-secrets.name
 }
 
-resource "vault_aws_secret_backend" "aws" {
-  path = "aws/hashicorp/sandbox"
 
-  access_key = aws_iam_access_key.vault-aws-secrets.id
-  secret_key = aws_iam_access_key.vault-aws-secrets.secret
+*/
 
-  lifecycle {
-    # These will be updated almost immediately by rotate-root
-    ignore_changes = [
-      access_key,
-      secret_key,
-    ]
-  }
-}
 
 
 // Rotate root immediately, so only Vault knows it
@@ -118,15 +202,3 @@ EOT
 #
 #   Or...
 #     just make the time_rotating rotate-root optional behaviour
-
-
-
-resource "vault_aws_secret_backend_role" "test" {
-  backend         = vault_aws_secret_backend.aws.path
-  name            = "test"
-  credential_type = "iam_user"
-
-  user_path = "/vault/"
-
-  policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
-}
