@@ -79,7 +79,7 @@ resource "vault_aws_secret_backend_role" "test" {
   name            = "test"
   credential_type = "iam_user"
 
-  user_path = "/vault/"
+  #user_path = "/vault/"
 
   # policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
 
