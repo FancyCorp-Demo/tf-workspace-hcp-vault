@@ -3,17 +3,15 @@
 #
 
 # Based on https://github.com/hashicorp/hc-sec-demos/blob/main/demos/vault/aws_secrets_engine/aws.tf
+# This means... if you're not a HashiCorp employee, don't use this. It won't work for you
 
 provider "aws" {
   region = "eu-west-2"
 }
 data "aws_caller_identity" "current" {}
 
-locals {
-  # Can't use caller identity, as TFC is creating this, not me personally
-  # my_email = split("/", data.aws_caller_identity.current.arn)[2]
-
-  my_email = "lucy.davinhart@hashicorp.com"
+variable "my_email" {
+  default = "lucy.davinhart@hashicorp.com"
 }
 
 data "aws_region" "current" {}
@@ -25,7 +23,7 @@ data "aws_iam_policy" "demo_user_permissions_boundary" {
 }
 
 resource "aws_iam_user" "vault_mount_user" {
-  name                 = "demo-${local.my_email}"
+  name                 = "demo-${var.my_email}"
   permissions_boundary = data.aws_iam_policy.demo_user_permissions_boundary.arn
   force_destroy        = true
 }
@@ -53,6 +51,7 @@ resource "vault_aws_secret_backend" "aws" {
   access_key = aws_iam_access_key.vault_mount_user.id
   secret_key = aws_iam_access_key.vault_mount_user.secret
 
+  # Ensures that usernames are prefixed with the name of the main Vault IAM user
   username_template = "{{ if (eq .Type \"STS\") }}{{ printf \"${aws_iam_user.vault_mount_user.name}-%s-%s\" (random 20) (unix_time) | truncate 32 }}{{ else }}{{ printf \"${aws_iam_user.vault_mount_user.name}-vault-%s-%s\" (unix_time) (random 20) | truncate 60 }}{{ end }}"
 
 
@@ -75,14 +74,9 @@ data "aws_iam_policy_document" "vault_dynamic_iam_user_policy" {
 }
 
 resource "vault_aws_secret_backend_role" "test" {
-  backend         = vault_aws_secret_backend.aws.path
-  name            = "test"
-  credential_type = "iam_user"
-
-  #user_path = "/vault/"
-
-  # policy_arns = ["arn:aws:iam::aws:policy/AdministratorAccess"]
-
+  backend                  = vault_aws_secret_backend.aws.path
+  name                     = "test"
+  credential_type          = "iam_user"
   permissions_boundary_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
   policy_document          = data.aws_iam_policy_document.vault_dynamic_iam_user_policy.json
 }
