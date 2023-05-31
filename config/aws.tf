@@ -28,12 +28,50 @@ resource "aws_iam_user" "vault_mount_user" {
   force_destroy        = true
 }
 
+data "aws_iam_policy_document" "vault-aws-secrets" {
+  statement {
+    effect = "Allow"
+    actions = [
+      "iam:AttachUserPolicy",
+      "iam:CreateAccessKey",
+      "iam:CreateUser",
+      "iam:DeleteAccessKey",
+      "iam:DeleteUser",
+      "iam:DeleteUserPolicy",
+      "iam:DetachUserPolicy",
+      "iam:GetUser",
+      "iam:ListAccessKeys",
+      "iam:ListAttachedUserPolicies",
+      "iam:ListGroupsForUser",
+      "iam:ListUserPolicies",
+      "iam:PutUserPolicy",
+      "iam:AddUserToGroup",
+      "iam:RemoveUserFromGroup"
+    ]
+    resources = [
+      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:*",
+    ]
+  }
+}
+
+# Limit to just the permissions needed to manage IAM creds
+resource "aws_iam_user_policy" "vault-aws-secrets" {
+  name   = "vault-aws-secrets"
+  user   = aws_iam_user.vault_mount_user.name
+  policy = data.aws_iam_policy_document.vault-aws-secrets.json
+}
+
+# Permissions boundary, required for SecOps
 resource "aws_iam_user_policy" "vault_mount_user" {
   user   = aws_iam_user.vault_mount_user.name
   policy = data.aws_iam_policy.demo_user_permissions_boundary.policy
   name   = "DemoUserInlinePolicy"
 }
 
+
+# TODO: can we do something clever like... only create one if none exists?
+# Or do we have to set a "create_access_key" variable on the workspace?
+# And even then... we'd need to conditionally _not_ set
 resource "aws_iam_access_key" "vault_mount_user" {
   user = aws_iam_user.vault_mount_user.name
 }
@@ -104,65 +142,18 @@ resource "vault_aws_secret_backend_role" "test" {
   policy_document          = data.aws_iam_policy_document.vault_dynamic_iam_user_policy.json
 }
 
+resource "vault_aws_secret_backend_role" "admin" {
+  backend                  = vault_aws_secret_backend.aws.path
+  name                     = "admin"
+  credential_type          = "iam_user"
+  permissions_boundary_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
+  policy_arns              = ["arn:aws:iam::aws:policy/AdministratorAccess"]
 
-
-
-
-
-
-#
-# The old stuff...
-#
-
-
-/*
-resource "aws_iam_user" "vault-aws-secrets" {
-  name = "aws-secrets"
-  path = "/vault/"
-}
-
-data "aws_iam_policy_document" "vault-aws-secrets" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "iam:AttachUserPolicy",
-      "iam:CreateAccessKey",
-      "iam:CreateUser",
-      "iam:DeleteAccessKey",
-      "iam:DeleteUser",
-      "iam:DeleteUserPolicy",
-      "iam:DetachUserPolicy",
-      "iam:GetUser",
-      "iam:ListAccessKeys",
-      "iam:ListAttachedUserPolicies",
-      "iam:ListGroupsForUser",
-      "iam:ListUserPolicies",
-      "iam:PutUserPolicy",
-      "iam:AddUserToGroup",
-      "iam:RemoveUserFromGroup"
-    ]
-    resources = [
-      # Allow managing any users it creates...
-      # As well as managing itself
-      # TODO: Realistically, it should have fewer permissions here. i.e. to only allow rotating its own creds
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/vault-*",
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:user/vault/*",
-    ]
-  }
-}
-
-resource "aws_iam_user_policy" "vault-aws-secrets" {
-  name   = "vault-aws-secrets"
-  user   = aws_iam_user.vault-aws-secrets.name
-  policy = data.aws_iam_policy_document.vault-aws-secrets.json
-}
-
-resource "aws_iam_access_key" "vault-aws-secrets" {
-  user = aws_iam_user.vault-aws-secrets.name
 }
 
 
-*/
+
+
 
 
 
