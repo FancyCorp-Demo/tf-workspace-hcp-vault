@@ -93,7 +93,7 @@ resource "vault_aws_secret_backend" "aws" {
 }
 
 
-data "aws_iam_policy_document" "vault_dynamic_iam_user_policy" {
+data "aws_iam_policy_document" "describe_regions" {
   statement {
     sid       = "VaultDemoUserDescribeEC2Regions"
     actions   = ["ec2:DescribeRegions"]
@@ -106,24 +106,26 @@ resource "vault_aws_secret_backend_role" "test" {
   name                     = "test"
   credential_type          = "iam_user"
   permissions_boundary_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
-  policy_document          = data.aws_iam_policy_document.vault_dynamic_iam_user_policy.json
+  policy_document          = data.aws_iam_policy_document.describe_regions.json
 }
 
 
-resource "aws_iam_group" "developers" {
-  name = "developers"
+data "aws_iam_policy_document" "admin" {
+  statement {
+    sid       = "Admin"
+    actions   = ["*"]
+    resources = ["*"]
+  }
 }
-resource "aws_iam_group_policy_attachment" "developers" {
-  group      = aws_iam_group.developers.name
-  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
-}
-
 resource "vault_aws_secret_backend_role" "developers" {
-  backend                  = vault_aws_secret_backend.aws.path
-  name                     = "developers"
-  credential_type          = "iam_user"
+  backend         = vault_aws_secret_backend.aws.path
+  name            = "developers"
+  credential_type = "iam_user"
+
+  # Full admin access...
+  policy_document = data.aws_iam_policy_document.admin.json
+  # But constrained by the Permissions Boundary
   permissions_boundary_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
-  iam_groups               = [aws_iam_group.developers.name]
 }
 
 
