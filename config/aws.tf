@@ -49,7 +49,7 @@ locals {
 {{ if (eq .Type "STS") }}
 	{{ printf "${aws_iam_user.vault_mount_user.name}-%s-%s" (random 20) (unix_time) | truncate 32 }}
 {{ else }}
-    {{ printf "${aws_iam_user.vault_mount_user.name}-vault-%s-%s-%s" (printf "%s-%s" (.DisplayName) (.PolicyName) | truncate 42) (unix_time) (random 20) | truncate 64 }}
+    {{ printf "${aws_iam_user.vault_mount_user.name}-vault-%s-%s-%s" (printf "%s-%s" (.DisplayName) (.PolicyName) | truncate 42) (unix_time) (random 20) | truncate 60 }}
 {{ end }}
 EOT
 
