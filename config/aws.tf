@@ -109,13 +109,21 @@ resource "vault_aws_secret_backend_role" "test" {
   policy_document          = data.aws_iam_policy_document.vault_dynamic_iam_user_policy.json
 }
 
-resource "vault_aws_secret_backend_role" "admin" {
+
+resource "aws_iam_group" "developers" {
+  name = "developers"
+}
+resource "aws_iam_group_policy_attachment" "developers" {
+  group      = aws_iam_group.developers.name
+  policy_arn = "arn:aws:iam::aws:policy/AdministratorAccess"
+}
+
+resource "vault_aws_secret_backend_role" "developers" {
   backend                  = vault_aws_secret_backend.aws.path
-  name                     = "admin"
+  name                     = "developers"
   credential_type          = "iam_user"
   permissions_boundary_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
-  policy_arns              = ["arn:aws:iam::aws:policy/AdministratorAccess"]
-
+  iam_groups               = [aws_iam_group.developers.name]
 }
 
 
