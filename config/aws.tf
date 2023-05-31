@@ -52,8 +52,13 @@ resource "vault_aws_secret_backend" "aws" {
   secret_key = aws_iam_access_key.vault_mount_user.secret
 
   # Ensures that usernames are prefixed with the name of the main Vault IAM user
-  username_template = "{{ if (eq .Type \"STS\") }}{{ printf \"${aws_iam_user.vault_mount_user.name}-%s-%s\" (random 20) (unix_time) | truncate 32 }}{{ else }}{{ printf \"${aws_iam_user.vault_mount_user.name}-vault-%s-%s\" (unix_time) (random 20) | truncate 60 }}{{ end }}"
-
+  username_template = <<EOF
+{{ if (eq .Type "STS") }}
+    {{ printf "${aws_iam_user.vault_mount_user.name}-%s-%s" (random 20) (unix_time) | truncate 32 }}
+{{ else }}
+    {{ printf "${aws_iam_user.vault_mount_user.name}-vault-%s-%s-%s" (printf "%s" (.DisplayName) | truncate 42) (unix_time) (random 20) | truncate 60 }}
+{{ end }}
+EOF
 
   lifecycle {
     # These will be updated almost immediately by rotate-root
