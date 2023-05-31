@@ -44,6 +44,29 @@ resource "aws_iam_access_key" "vault_mount_user" {
 #
 
 
+locals {
+  username_template = <<EOT
+{{ if (eq .Type "STS") }}
+	{{ printf "${aws_iam_user.vault_mount_user.name}-%s-%s" (random 20) (unix_time) | truncate 32 }}
+{{ else }}
+    {{ printf "${aws_iam_user.vault_mount_user.name}-vault-%s-%s-%s" (printf "%s-%s" (.DisplayName) (.PolicyName) | truncate 42) (unix_time) (random 20) | truncate 64 }}
+{{ end }}
+EOT
+
+  # Known good config
+  #    {{ printf "${aws_iam_user.vault_mount_user.name}-vault-%s-%s" (unix_time) (random 20) | truncate 60 }}
+  #
+  # Template from https://developer.hashicorp.com/vault/api-docs/secret/aws#username_template
+  #    {{ printf "vault-%s-%s-%s" (printf "%s-%s" (.DisplayName) (.PolicyName) | truncate 42) (unix_time) (random 20) | truncate 64 }}
+
+  username_template_without_whitespace = replace(
+    replace(
+      local.username_template,
+      "\n", ""
+    ),
+    "\t", ""
+  )
+}
 
 resource "vault_aws_secret_backend" "aws" {
   path = "aws/hashicorp/sandbox"
@@ -51,8 +74,9 @@ resource "vault_aws_secret_backend" "aws" {
   access_key = aws_iam_access_key.vault_mount_user.id
   secret_key = aws_iam_access_key.vault_mount_user.secret
 
+  username_template = local.username_template_without_whitespace
+
   # Ensures that usernames are prefixed with the name of the main Vault IAM user
-  username_template = "{{ if (eq .Type \"STS\") }}{{ printf \"${aws_iam_user.vault_mount_user.name}-%s-%s\" (random 20) (unix_time) | truncate 32 }}{{ else }}{{ printf \"${aws_iam_user.vault_mount_user.name}-vault-%s-%s\" (unix_time) (random 20) | truncate 60 }}{{ end }}"
   lifecycle {
     # These will be updated almost immediately by rotate-root
     ignore_changes = [
@@ -194,3 +218,10 @@ EOT
 #
 #   Or...
 #     just make the time_rotating rotate-root optional behaviour
+
+
+
+
+
+
+# TODO: Validate, by generating some creds
