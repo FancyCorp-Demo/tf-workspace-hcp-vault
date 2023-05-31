@@ -28,39 +28,6 @@ resource "aws_iam_user" "vault_mount_user" {
   force_destroy        = true
 }
 
-data "aws_iam_policy_document" "vault-aws-secrets" {
-  statement {
-    effect = "Allow"
-    actions = [
-      "iam:AttachUserPolicy",
-      "iam:CreateAccessKey",
-      "iam:CreateUser",
-      "iam:DeleteAccessKey",
-      "iam:DeleteUser",
-      "iam:DeleteUserPolicy",
-      "iam:DetachUserPolicy",
-      "iam:GetUser",
-      "iam:ListAccessKeys",
-      "iam:ListAttachedUserPolicies",
-      "iam:ListGroupsForUser",
-      "iam:ListUserPolicies",
-      "iam:PutUserPolicy",
-      "iam:AddUserToGroup",
-      "iam:RemoveUserFromGroup"
-    ]
-    resources = [
-      "arn:aws:iam::${data.aws_caller_identity.current.account_id}:*",
-    ]
-  }
-}
-
-# Limit to just the permissions needed to manage IAM creds
-resource "aws_iam_user_policy" "vault-aws-secrets" {
-  name   = "vault-aws-secrets"
-  user   = aws_iam_user.vault_mount_user.name
-  policy = data.aws_iam_policy_document.vault-aws-secrets.json
-}
-
 # Permissions boundary, required for SecOps
 resource "aws_iam_user_policy" "vault_mount_user" {
   user   = aws_iam_user.vault_mount_user.name
