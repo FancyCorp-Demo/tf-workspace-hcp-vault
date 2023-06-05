@@ -17,6 +17,8 @@ resource "vault_auth_backend" "userpass" {
 
   tune {
     listing_visibility = "unauth"
+
+    default_lease_ttl = "12h"
   }
 }
 
