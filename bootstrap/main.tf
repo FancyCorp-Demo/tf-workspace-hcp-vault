@@ -97,15 +97,19 @@ module "tfc-auth" {
 data "tfe_workspace" "downstream" {
   name = "vault-config"
 }
-resource "tfe_workspace_run" "destroy_downstream" {
+resource "tfe_workspace_run" "downstream" {
   workspace_id = data.tfe_workspace.downstream.id
 
   depends_on = [
     module.tfc-auth
   ]
 
-  # Do not actually kick off an Apply, but create the resource so we can Destroy later
-  # (i.e. we're excluding the apply{} block
+  # Kick off a fire-and-forget Apply
+  # (We have run triggers already, but those still require manual approval
+  apply {
+    manual_confirm = false # Let TF confirm this itself
+    wait_for_run   = true  # Fire-and-Forget
+  }
 
   # Kick off the destroy, and wait for it to succeed
   # (this is default behaviour, but make it explicit)
