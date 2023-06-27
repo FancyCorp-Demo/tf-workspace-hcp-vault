@@ -184,7 +184,7 @@ resource "vault_azure_secret_backend" "azure" {
 
   use_microsoft_graph_api = true
   subscription_id         = data.azurerm_subscription.current.subscription_id
-  tenant_id               = "0e3e2e88-8caf-41ca-b4da-e3b33b6c52ec" # TODO: can we get this from a data source?
+  tenant_id               = data.azurerm_subscription.current.tenant_id
   client_id               = azuread_application.vault_application.application_id
   client_secret           = azuread_application_password.vault_role_client_secret.value
   environment             = "AzurePublicCloud"
