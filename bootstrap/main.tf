@@ -112,7 +112,7 @@ resource "tfe_workspace_run" "downstream" {
   # (We have run triggers already, but those still require manual approval
   apply {
     manual_confirm = false # Let TF confirm this itself
-    wait_for_run   = true  # Fire-and-Forget
+    wait_for_run   = false # Fire-and-Forget
   }
 
   # Kick off the destroy, and wait for it to succeed
