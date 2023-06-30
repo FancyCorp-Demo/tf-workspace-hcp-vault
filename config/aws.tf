@@ -29,10 +29,9 @@ resource "aws_iam_user" "vault_mount_user" {
 }
 
 # Permissions boundary, required for SecOps
-resource "aws_iam_user_policy" "vault_mount_user" {
-  user   = aws_iam_user.vault_mount_user.name
-  policy = data.aws_iam_policy.demo_user_permissions_boundary.policy
-  name   = "DemoUserInlinePolicy"
+resource "aws_iam_user_policy_attachment" "vault_mount_user" {
+  user       = aws_iam_user.vault_mount_user.name
+  policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
 }
 
 
