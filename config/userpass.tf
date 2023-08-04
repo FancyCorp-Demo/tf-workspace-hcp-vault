@@ -1,5 +1,5 @@
 resource "time_rotating" "admin_password" {
-  rotation_hours = 1
+  rotation_days = 7
 }
 
 resource "random_pet" "admin_password" {
