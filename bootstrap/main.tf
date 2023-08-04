@@ -136,7 +136,8 @@ module "tfc-auth" {
     {
       workspace_name = terraform.workspace
       token_policies = [
-        vault_policy.admin.name
+        # use a policy we are not managing ourselves, to avoid a race condition
+        "hcp-root"
       ]
     }
   ]
