@@ -47,11 +47,51 @@ data "tfe_outputs" "vault_cluster" {
 // Admin Policy
 //
 
+variable "auth_method" {
+  default = "admin_token"
+}
+data "tfe_workspace_ids" "all" {
+  names = ["*"]
+}
+
+resource "tfe_variable" "vault_auth_method" {
+  key          = "auth_method"
+  value        = "dynamic_creds"
+  category     = "terraform"
+  workspace_id = data.tfe_workspace_ids.all.ids[terraform.workspace]
+
+  description = "What Vault Auth method should we use?"
+}
+
+
 provider "vault" {
-  address   = data.tfe_outputs.vault_cluster.values.vault_public_endpoint_url
-  token     = data.tfe_outputs.vault_cluster.values.vault_admin_token
+  address = data.tfe_outputs.vault_cluster.values.vault_public_endpoint_url
+
+  # If we've not yet bootstrapped... use an admin token for auth
+  # otherwise, use dynamic creds (by setting token to null)
+  token = var.auth_method == "admin_token" ? data.tfe_outputs.vault_cluster.values.vault_admin_token : null
+
   namespace = data.tfe_outputs.vault_cluster.values.vault_namespace
 }
+
+// whoami?
+data "vault_generic_secret" "whoami" {
+  path = "auth/token/lookup-self"
+}
+
+output "whoami" {
+  value = nonsensitive(
+    merge(data.vault_generic_secret.whoami.data, {
+      # Remove the ID from the output, and then the rest is non-sensitive
+      "id" = "REDACTED",
+      }
+    )
+  )
+}
+
+
+
+
 
 data "vault_policy_document" "admin" {
   rule {
@@ -82,14 +122,26 @@ module "tfc-auth" {
   }
 
   roles = [
+    # The rest of the Vault config
+    # TODO: split this up by use-case
     {
       workspace_name = "vault-config"
+      token_policies = [
+        vault_policy.admin.name
+      ]
+    },
+
+    # give this workspace itself some dynamic creds
+    # (if present, we'd like to use these instead of the admin token)
+    {
+      workspace_name = terraform.workspace
       token_policies = [
         vault_policy.admin.name
       ]
     }
   ]
 }
+
 
 
 
