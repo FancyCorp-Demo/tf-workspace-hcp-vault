@@ -136,6 +136,12 @@ module "tfc-auth" {
         vault_policy.admin.name
       ]
     },
+    {
+      workspace_name = "vault-config-azure"
+      token_policies = [
+        vault_policy.admin.name
+      ]
+    },
 
     # give this workspace itself some dynamic creds
     # (if present, we'd like to use these instead of the admin token)
@@ -158,10 +164,24 @@ module "tfc-auth" {
 //
 
 data "tfe_workspace" "downstream" {
-  name = "vault-config"
+  for_each = toset([
+    "vault-config",
+    "vault-config-aws",
+    "vault-config-azure",
+  ])
+
+  name = each.key
 }
+
+moved {
+  from = tfe_workspace_run.downstream
+  to   = tfe_workspace_run.downstream["vault-config"]
+}
+
 resource "tfe_workspace_run" "downstream" {
-  workspace_id = data.tfe_workspace.downstream.id
+  for_each = data.tfe_workspace.downstream
+
+  workspace_id = each.value.id
 
   depends_on = [
     module.tfc-auth
