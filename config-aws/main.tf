@@ -80,7 +80,7 @@ locals {
 {{ if (eq .Type "STS") }}
 	{{ printf "${aws_iam_user.vault_mount_user.name}-%s-%s" (random 20) (unix_time) | truncate 32 }}
 {{ else }}
-	{{ printf "${aws_iam_user.vault_mount_user.name}-vault-%s-%s" (unix_time) (random 20) | truncate 60 }}
+	{{ printf "${aws_iam_user.vault_mount_user.name}-%s-%s" (unix_time) (random 20) | truncate 60 }}
 {{ end }}
 EOT
 
@@ -107,15 +107,10 @@ resource "vault_aws_secret_backend" "aws" {
   secret_key = aws_iam_access_key.vault_mount_user.secret
 
   username_template = local.username_template_without_whitespace
-
-  #  lifecycle {
-  #    # These will be updated almost immediately by rotate-root
-  #    ignore_changes = [
-  #      access_key,
-  #      secret_key,
-  #    ]
-  #  }
 }
+// In a real production use-case, we'd want to rotate-root ASAP
+// probably doable with TF somehow, without causing feedback loops... but not important for my demos
+
 
 
 data "aws_iam_policy_document" "describe_regions" {
@@ -157,61 +152,6 @@ resource "vault_aws_secret_backend_role" "developers" {
 
 
 
-
-
-// Rotate root immediately, so only Vault knows it
-/*
-resource "time_rotating" "aws" {
-  rotation_days = 30
-}
-resource "vault_generic_endpoint" "rotate-root" {
-  path           = "${vault_aws_secret_backend.aws.path}/config/rotate-root"
-  disable_read   = true
-  disable_delete = true
-
-  # The API endpoint expects no parameters
-  # https://www.vaultproject.io/api/secret/aws#rotate-root-iam-credentials
-  # But if we send anything we like, Vault will ignore it
-  # Thus, we send the time rotation
-  data_json = <<EOT
-{
-  "rotate": "${time_rotating.aws.id}"
-}
-EOT
-}
-*/
-
-
-# TODO: Fix this issue. Currently, we have:
-#
-# First TF Apply..
-# aws_iam_access_key.vault-aws-secrets creates some IAM creds
-#   at this point, the IAM user has a single set of Access Keys
-# vault_generic_endpoint.rotate-root rotates those creds
-#   at this point, the IAM user has a single (different) set of Access Keys
-#   AKIAYG76LF7ZWO3QZM7Y
-#
-# Second TF Apply...
-# TF detects that aws_iam_access_key.vault-aws-secrets no longer exists, and recreates it
-#   at this point, the IAM user has two sets of Access Keys (which would block the next rotate-root)
-#   AKIAYG76LF7ZUHNKFGNY is the new one
-#
-# TF Destroy...
-# TF destroys the IAM crds that it created
-#   destroy fails, because AKIAYG76LF7ZWO3QZM7Y still exists
-#   (i.e. the one created by TF 
-
-# So what we need is:
-#   Some way for the for the workspace to avoid recreating the creds
-#     e.g. to add a TF Var to say whether or not to create aws_iam_access_key.vault-aws-secrets
-#     or use a data source to check if one already exists
-#
-#   Force Destroy the IAM User
-#     i.e. https://registry.terraform.io/providers/hashicorp/aws/latest/docs/resources/iam_user#force_destroy
-#     though this does not solve the problem that the next rotate-root will fail
-#
-#   Or...
-#     just make the time_rotating rotate-root optional behaviour
 
 
 
