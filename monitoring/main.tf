@@ -43,16 +43,16 @@ data "aws_iam_policy" "demo_user_permissions_boundary" {
 }
 
 resource "aws_iam_user" "hcp_user" {
-  name                 = "demo-${var.my_email}-vault-monitoring"
-  permissions_boundary = data.aws_iam_policy.demo_user_permissions_boundary.arn
-  force_destroy        = true
+  name = "demo-${var.my_email}-vault-monitoring"
+  #  permissions_boundary = data.aws_iam_policy.demo_user_permissions_boundary.arn
+  force_destroy = true
 }
 
-# Permissions boundary, required for SecOps
-resource "aws_iam_user_policy_attachment" "hcp_user" {
-  user       = aws_iam_user.hcp_user.name
-  policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
-}
+## Permissions boundary, required for SecOps
+#resource "aws_iam_user_policy_attachment" "hcp_user" {
+#  user       = aws_iam_user.hcp_user.name
+#  policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
+#}
 
 
 
@@ -111,9 +111,15 @@ resource "aws_iam_policy_attachment" "audit" {
   policy_arn = aws_iam_policy.audit.arn
 }
 
+
+
+
+
 # TODO: Create creds
-
-
-
+# Holding off on this for now, as we still have manual steps anyway...
+# (meaning I need direct acccess to these creds to do the config)
 
 # TODO: Configure HCP
+# Currently not possible:
+# https://registry.terraform.io/providers/hashicorp/hcp/latest/docs/resources/vault_cluster
+# does not accept cloudwatch config yet... and is also nested config for the hcp_vault_cluster resource
