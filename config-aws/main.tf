@@ -108,14 +108,13 @@ resource "vault_aws_secret_backend" "aws" {
 
   username_template = local.username_template_without_whitespace
 
-  # Ensures that usernames are prefixed with the name of the main Vault IAM user
-  lifecycle {
-    # These will be updated almost immediately by rotate-root
-    ignore_changes = [
-      access_key,
-      secret_key,
-    ]
-  }
+  #  lifecycle {
+  #    # These will be updated almost immediately by rotate-root
+  #    ignore_changes = [
+  #      access_key,
+  #      secret_key,
+  #    ]
+  #  }
 }
 
 
