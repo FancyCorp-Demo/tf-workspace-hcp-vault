@@ -151,12 +151,15 @@ resource "vault_aws_secret_backend_role" "developers" {
 
 
 
+# Validate the secret engine works by generating some creds
+check "test_creds" {
+  data "vault_aws_access_credentials" "creds" {
+    backend = vault_aws_secret_backend.aws.path
+    role    = vault_aws_secret_backend_role.test.name
+  }
 
-
-
-
-
-
-
-# TODO: Validate, by generating some creds
-
+  assert {
+    condition     = data.vault_aws_access_credentials.creds.access_key != ""
+    error_message = "${vault_aws_secret_backend.aws.path}/creds/${vault_aws_secret_backend_role.test.name} did not return AWS creds"
+  }
+}
