@@ -83,3 +83,29 @@ resource "tfe_workspace_run" "downstream" {
   }
 }
 
+data "tfe_workspace" "downstream-monitoring" {
+  name = "vault-monitoring"
+}
+resource "tfe_workspace_run" "downstream-monitoring" {
+  workspace_id = data.tfe_workspace.downstream-monitoring.id
+
+  depends_on = [
+    module.hcp-vault
+  ]
+
+  # Kick off a fire-and-forget Apply
+  # (We have run triggers already, but those still require manual approval
+  apply {
+    manual_confirm = false # Let TF confirm this itself
+    wait_for_run   = false # Fire-and-Forget
+  }
+
+  # Kick off the destroy, and wait for it to succeed
+  # (this is default behaviour, but make it explicit)
+  destroy {
+    manual_confirm = false # Let TF confirm this itself
+    retry          = false # Only try once
+    wait_for_run   = true  # Wait until destroy has finished before removing this resource
+  }
+}
+
