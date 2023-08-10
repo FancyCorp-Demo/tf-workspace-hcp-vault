@@ -1,3 +1,23 @@
+terraform {
+  cloud {
+    organization = "fancycorp"
+
+
+    workspaces {
+      name = "vault-config-aws"
+    }
+  }
+
+  # Minimum provider version for OIDC auth
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 4.0"
+    }
+
+  }
+}
+
 #
 # AWS Config
 #
@@ -193,3 +213,4 @@ EOT
 
 
 # TODO: Validate, by generating some creds
+
