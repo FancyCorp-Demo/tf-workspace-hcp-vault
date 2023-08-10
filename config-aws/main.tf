@@ -43,7 +43,7 @@ data "aws_iam_policy" "demo_user_permissions_boundary" {
 }
 
 resource "aws_iam_user" "vault_mount_user" {
-  name                 = "demo-${var.my_email}-vault-secrets"
+  name                 = "demo-${var.my_email}"
   permissions_boundary = data.aws_iam_policy.demo_user_permissions_boundary.arn
   force_destroy        = true
 }
