@@ -59,6 +59,13 @@ resource "aws_iam_user_policy_attachment" "vault_mount_user" {
 # Or do we have to set a "create_access_key" variable on the workspace?
 # And even then... we'd need to conditionally _not_ set
 resource "aws_iam_access_key" "vault_mount_user" {
+
+  # ensure that the policy attachment cannot be deleted without first deleting the access key
+  # (which in turn cannot be deleted before deleting the Vault mount)
+  #
+  # This ensures that when deleting the secret backend, Vault still has permissions required to revoke creds
+  depends_on = [aws_iam_user_policy_attachment.vault_mount_user]
+
   user = aws_iam_user.vault_mount_user.name
 }
 

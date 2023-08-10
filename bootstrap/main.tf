@@ -130,6 +130,12 @@ module "tfc-auth" {
         vault_policy.admin.name
       ]
     },
+    {
+      workspace_name = "vault-config-aws"
+      token_policies = [
+        vault_policy.admin.name
+      ]
+    },
 
     # give this workspace itself some dynamic creds
     # (if present, we'd like to use these instead of the admin token)
