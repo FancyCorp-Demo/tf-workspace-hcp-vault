@@ -173,11 +173,6 @@ data "tfe_workspace" "downstream" {
   name = each.key
 }
 
-moved {
-  from = tfe_workspace_run.downstream
-  to   = tfe_workspace_run.downstream["vault-config"]
-}
-
 resource "tfe_workspace_run" "downstream" {
   for_each = data.tfe_workspace.downstream
 
