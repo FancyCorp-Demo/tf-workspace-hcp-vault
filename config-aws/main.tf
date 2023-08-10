@@ -165,6 +165,9 @@ check "test_creds" {
   assert {
     # Does the thing we got from Vault contain an "access_key" attribute?
     # If so... good enough for now to say we successfully got AWS creds
+    #
+    # Validated by disabling the IAM User's Access Key and running the health check again
+    # (at which point, the check failed)
     condition     = can(data.vault_generic_secret.creds.data["access_key"])
     error_message = "${vault_aws_secret_backend.aws.path}/creds/${vault_aws_secret_backend_role.test.name} did not return AWS creds"
   }
