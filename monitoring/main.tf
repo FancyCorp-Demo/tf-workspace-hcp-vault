@@ -1,3 +1,22 @@
+terraform {
+  cloud {
+    organization = "fancycorp"
+
+
+    workspaces {
+      name = "vault-monitoring"
+    }
+  }
+
+  # Minimum provider version for OIDC auth
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+
+  }
+}
 
 #
 # AWS Config
@@ -37,6 +56,64 @@ resource "aws_iam_user_policy_attachment" "hcp_user" {
 
 
 
-# TODO: policies for metrics and audits
+# Policies for metrics and audits
 # https://developer.hashicorp.com/vault/tutorials/cloud-monitoring/vault-audit-log-cloudwatch
 # https://developer.hashicorp.com/vault/tutorials/cloud-monitoring/vault-metrics-cloudwatch
+
+
+data "aws_iam_policy_document" "hcp_cloudwatch_metrics" {
+  statement {
+    sid = "HCPMetricStreaming"
+    actions = [
+      "cloudwatch:ListMetrics",
+      "cloudwatch:ListMetricStreams",
+      "cloudwatch:ListTagsForResource",
+      "cloudwatch:PutMetricData",
+      "cloudwatch:PutMetricStream",
+      "cloudwatch:TagResource"
+    ]
+    resources = ["*"]
+  }
+}
+resource "aws_iam_policy" "metrics" {
+  name        = "hcp-metrics"
+  description = "https://developer.hashicorp.com/vault/tutorials/cloud-monitoring/vault-metrics-cloudwatch"
+  policy      = data.aws_iam_policy_document.hcp_cloudwatch_metrics.json
+}
+resource "aws_iam_policy_attachment" "metrics" {
+  name       = "metrics"
+  users      = [aws_iam_user.hcp_user.name]
+  policy_arn = aws_iam_policy.metrics.arn
+}
+
+data "aws_iam_policy_document" "hcp_cloudwatch_logs" {
+  statement {
+    sid = "HCPLogStreaming"
+    actions = [
+      "logs:PutLogEvents",
+      "logs:DescribeLogStreams",
+      "logs:DescribeLogGroups",
+      "logs:CreateLogStream",
+      "logs:CreateLogGroup",
+      "logs:TagLogGroup"
+    ]
+    resources = ["*"]
+  }
+}
+resource "aws_iam_policy" "audit" {
+  name        = "hcp-audit"
+  description = "https://developer.hashicorp.com/vault/tutorials/cloud-monitoring/vault-audit-log-cloudwatch"
+  policy      = data.aws_iam_policy_document.hcp_cloudwatch_logs.json
+}
+resource "aws_iam_policy_attachment" "audit" {
+  name       = "audit"
+  users      = [aws_iam_user.hcp_user.name]
+  policy_arn = aws_iam_policy.audit.arn
+}
+
+# TODO: Create creds
+
+
+
+
+# TODO: Configure HCP
