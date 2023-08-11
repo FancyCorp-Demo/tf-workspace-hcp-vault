@@ -191,6 +191,12 @@ module "tfc-auth-self" {
 // Protector for downstream workspace: destroy downstream before destroying this
 //
 
+
+
+
+# TODO: Parameterise which downstream workspaces we configure with a TF Var
+# (e.g. sometimes we may not need to set up the azure secrets engine)
+
 data "tfe_workspace" "downstream" {
   for_each = toset([
     "vault-config",
