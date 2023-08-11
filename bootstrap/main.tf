@@ -61,13 +61,6 @@ resource "tfe_variable" "vault_auth_method" {
   workspace_id = data.tfe_workspace_ids.all.ids[terraform.workspace]
 
   description = "What Vault Auth method should we use?"
-
-
-  # when destroying...
-  # don't delete this variable until after we've successfully destroyed downstream workspaces
-  depends_on = [
-    tfe_workspace_run.downstream
-  ]
 }
 
 
@@ -185,8 +178,13 @@ resource "tfe_workspace_run" "downstream" {
 
   workspace_id = each.value.id
 
+  # We need to run the downstream destroys before we can delete any of these
   depends_on = [
-    module.tfc-auth
+    # downstream workspaces need auth
+    module.tfc-auth,
+
+    # this workspace needs JWT auth too
+    tfe_variable.vault_auth_method,
   ]
 
   # Kick off a fire-and-forget Apply
