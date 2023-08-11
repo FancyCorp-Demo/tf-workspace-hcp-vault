@@ -104,6 +104,11 @@ data "vault_policy_document" "admin" {
 resource "vault_policy" "admin" {
   name   = "admin"
   policy = data.vault_policy_document.admin.hcl
+
+  depends_on = [
+    # ensure that the bootstrap auth self-modifier is the last thing to be deleted
+    module.tfc-auth-self
+  ]
 }
 
 module "tfc-auth" {
@@ -142,7 +147,25 @@ module "tfc-auth" {
         vault_policy.admin.name
       ]
     },
+  ]
+}
 
+module "tfc-auth-self" {
+  source  = "hashi-strawb/terraform-cloud-jwt-auth/vault"
+  version = ">= 0.2.1"
+  #source = "./terraform-vault-terraform-cloud-jwt-auth"
+
+  terraform = {
+    org = "fancycorp"
+  }
+
+  vault = {
+    addr      = data.tfe_outputs.vault_cluster.values.vault_public_endpoint_url
+    namespace = data.tfe_outputs.vault_cluster.values.vault_namespace
+    auth_path = "tfc/fancycorp-bootstrap" # can't have two separate JWT auth mounts
+  }
+
+  roles = [
     # give this workspace itself some dynamic creds
     # (if present, we'd like to use these instead of the admin token)
     {
@@ -185,6 +208,7 @@ resource "tfe_workspace_run" "downstream" {
 
     # this workspace needs JWT auth too
     tfe_variable.vault_auth_method,
+    module.tfc-auth-self,
   ]
 
   # Kick off a fire-and-forget Apply
