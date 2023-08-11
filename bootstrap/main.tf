@@ -61,6 +61,11 @@ resource "tfe_variable" "vault_auth_method" {
   workspace_id = data.tfe_workspace_ids.all.ids[terraform.workspace]
 
   description = "What Vault Auth method should we use?"
+
+  depends_on = [
+    # don't set the auth method var unless the auth has been created
+    module.tfc-auth-self
+  ]
 }
 
 
