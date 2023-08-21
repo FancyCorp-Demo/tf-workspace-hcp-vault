@@ -55,11 +55,12 @@ resource "aws_iam_user" "hcp_user" {
   }
 }
 
+# TODO: can we create this without the DemoUser policy (and just have it as a PB?)
 # Permissions boundary, required for SecOps
-resource "aws_iam_user_policy_attachment" "hcp_user" {
-  user       = aws_iam_user.hcp_user.name
-  policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
-}
+#resource "aws_iam_user_policy_attachment" "hcp_user" {
+#  user       = aws_iam_user.hcp_user.name
+#  policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
+#}
 
 
 
@@ -68,7 +69,6 @@ resource "aws_iam_user_policy_attachment" "hcp_user" {
 # https://developer.hashicorp.com/vault/tutorials/cloud-monitoring/vault-metrics-cloudwatch
 
 
-/*
 data "aws_iam_policy_document" "hcp_cloudwatch_metrics" {
   statement {
     sid = "HCPMetricStreaming"
@@ -80,6 +80,8 @@ data "aws_iam_policy_document" "hcp_cloudwatch_metrics" {
       "cloudwatch:PutMetricStream",
       "cloudwatch:TagResource"
     ]
+
+    # TODO: be more specific
     resources = ["*"]
   }
 }
@@ -93,7 +95,6 @@ resource "aws_iam_policy_attachment" "metrics" {
   users      = [aws_iam_user.hcp_user.name]
   policy_arn = aws_iam_policy.metrics.arn
 }
-*/
 
 data "aws_iam_policy_document" "hcp_cloudwatch_logs" {
   statement {
@@ -106,6 +107,8 @@ data "aws_iam_policy_document" "hcp_cloudwatch_logs" {
       "logs:CreateLogGroup",
       "logs:TagLogGroup"
     ]
+
+    # TODO: be more specific
     resources = ["*"]
   }
 }
