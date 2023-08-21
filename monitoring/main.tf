@@ -43,16 +43,23 @@ data "aws_iam_policy" "demo_user_permissions_boundary" {
 }
 
 resource "aws_iam_user" "hcp_user" {
-  name = "demo-${var.my_email}-vault-monitoring"
-  #  permissions_boundary = data.aws_iam_policy.demo_user_permissions_boundary.arn
-  force_destroy = true
+  name                 = "demo-${var.my_email}-vault-monitoring"
+  permissions_boundary = data.aws_iam_policy.demo_user_permissions_boundary.arn
+  force_destroy        = true
+
+
+  tags = {
+    # TODO: Get HCP details from variables
+    hcp-org-id     = "ffa120a5-d7b1-4b9c-be17-33a71e45f43f"
+    hcp-project-id = "d6c96d2b-616b-4cb8-b78c-9e17a78c2167"
+  }
 }
 
-## Permissions boundary, required for SecOps
-#resource "aws_iam_user_policy_attachment" "hcp_user" {
-#  user       = aws_iam_user.hcp_user.name
-#  policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
-#}
+# Permissions boundary, required for SecOps
+resource "aws_iam_user_policy_attachment" "hcp_user" {
+  user       = aws_iam_user.hcp_user.name
+  policy_arn = data.aws_iam_policy.demo_user_permissions_boundary.arn
+}
 
 
 
@@ -61,6 +68,7 @@ resource "aws_iam_user" "hcp_user" {
 # https://developer.hashicorp.com/vault/tutorials/cloud-monitoring/vault-metrics-cloudwatch
 
 
+/*
 data "aws_iam_policy_document" "hcp_cloudwatch_metrics" {
   statement {
     sid = "HCPMetricStreaming"
@@ -85,6 +93,7 @@ resource "aws_iam_policy_attachment" "metrics" {
   users      = [aws_iam_user.hcp_user.name]
   policy_arn = aws_iam_policy.metrics.arn
 }
+*/
 
 data "aws_iam_policy_document" "hcp_cloudwatch_logs" {
   statement {
