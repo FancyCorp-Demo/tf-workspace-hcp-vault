@@ -127,7 +127,6 @@ resource "aws_iam_access_key" "hcp_user" {
 
 #
 # Kick off another Apply on the cluster workspace, to add the Cloudwatch monitoring
-# (this may not work, as our monitoring workspace might not have output yet)
 #
 
 provider "tfe" {
