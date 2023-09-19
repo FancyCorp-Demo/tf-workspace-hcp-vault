@@ -94,12 +94,3 @@ resource "tfe_workspace_run" "downstream" {
     wait_for_run   = true  # Wait until destroy has finished before removing this resource
   }
 }
-
-moved {
-  from = tfe_workspace_run.downstream
-  to   = tfe_workspace_run.downstream["vault-config-bootstrap"]
-}
-moved {
-  from = tfe_workspace_run.downstream-monitoring
-  to   = tfe_workspace_run.downstream["vault-monitoring"]
-}
