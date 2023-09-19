@@ -30,6 +30,11 @@ provider "hcp" {
   project_id = "d6c96d2b-616b-4cb8-b78c-9e17a78c2167"
 }
 
+// If we've created a Cloudwatch user, use those creds
+data "tfe_outputs" "vault_cluster" {
+  workspace = "vault-monitoring"
+}
+
 module "hcp-vault" {
   source = "./hcp-vault"
 
@@ -58,10 +63,17 @@ provider "tfe" {
 }
 
 data "tfe_workspace" "downstream" {
-  name = "vault-config-bootstrap"
+  for_each = toset([
+    "vault-config-bootstrap",
+    "vault-monitoring"
+  ])
+
+  name = each.key
 }
 resource "tfe_workspace_run" "downstream" {
-  workspace_id = data.tfe_workspace.downstream.id
+  for_each = data.tfe_workspace.downstream
+
+  workspace_id = each.value.id
 
   depends_on = [
     module.hcp-vault
@@ -83,29 +95,11 @@ resource "tfe_workspace_run" "downstream" {
   }
 }
 
-data "tfe_workspace" "downstream-monitoring" {
-  name = "vault-monitoring"
+moved {
+  from = tfe_workspace_run.downstream
+  to   = tfe_workspace_run.downstream["vault-config-bootstrap"]
 }
-resource "tfe_workspace_run" "downstream-monitoring" {
-  workspace_id = data.tfe_workspace.downstream-monitoring.id
-
-  depends_on = [
-    module.hcp-vault
-  ]
-
-  # Kick off a fire-and-forget Apply
-  # (We have run triggers already, but those still require manual approval
-  apply {
-    manual_confirm = false # Let TF confirm this itself
-    wait_for_run   = false # Fire-and-Forget
-  }
-
-  # Kick off the destroy, and wait for it to succeed
-  # (this is default behaviour, but make it explicit)
-  destroy {
-    manual_confirm = false # Let TF confirm this itself
-    retry          = false # Only try once
-    wait_for_run   = true  # Wait until destroy has finished before removing this resource
-  }
+moved {
+  from = tfe_workspace_run.downstream-monitoring
+  to   = tfe_workspace_run.downstream["vault-monitoring"]
 }
-
