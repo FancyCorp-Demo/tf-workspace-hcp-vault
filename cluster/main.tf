@@ -31,9 +31,13 @@ provider "hcp" {
 }
 
 // If we've created a Cloudwatch user, use those creds
-data "tfe_outputs" "vault_cluster" {
+data "tfe_outputs" "vault_monitoring" {
   workspace = "vault-monitoring"
 }
+output "monitoring_outputs" {
+  value = nonsensitive(data.tfe_outputs.vault_monitoring.values)
+}
+
 
 module "hcp-vault" {
   source = "./hcp-vault"
@@ -70,6 +74,7 @@ data "tfe_workspace" "downstream" {
 
   name = each.key
 }
+
 resource "tfe_workspace_run" "downstream" {
   for_each = data.tfe_workspace.downstream
 
