@@ -29,3 +29,13 @@ variable "public_endpoint" {
   type    = bool
   default = false
 }
+
+
+variable "cloudwatch_creds" {
+  type = object({
+    key    = string
+    secret = string
+    region = optional(string, "eu-west-2")
+  })
+  default = null
+}

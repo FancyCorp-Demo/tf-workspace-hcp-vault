@@ -34,10 +34,6 @@ provider "hcp" {
 data "tfe_outputs" "vault_monitoring" {
   workspace = "vault-monitoring"
 }
-output "monitoring_outputs" {
-  value = nonsensitive(data.tfe_outputs.vault_monitoring.values)
-}
-
 
 module "hcp-vault" {
   source = "./hcp-vault"
@@ -52,6 +48,15 @@ module "hcp-vault" {
 
   # To make demos easier
   public_endpoint = true
+
+  # if we have creds, use them
+  cloudwatch_creds = try(
+    {
+      key    = data.tfe_outputs.vault_monitoring.values.creds.id
+      secret = data.tfe_outputs.vault_monitoring.values.creds.secret
+    },
+    null
+  )
 }
 
 
