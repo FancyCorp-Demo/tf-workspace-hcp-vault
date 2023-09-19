@@ -14,6 +14,10 @@ terraform {
       source  = "hashicorp/aws"
       version = "~> 5.0"
     }
+    tfe = {
+      source  = "hashicorp/tfe"
+      version = ">= 0.45.0" # for tfe_workspace_run
+    }
 
   }
 }
@@ -30,10 +34,6 @@ provider "aws" {
 }
 data "aws_caller_identity" "current" {}
 
-variable "my_email" {
-  default = "lucy.davinhart@hashicorp.com"
-}
-
 data "aws_region" "current" {}
 
 # Vault Mount AWS Config Setup
@@ -47,11 +47,9 @@ resource "aws_iam_user" "hcp_user" {
   permissions_boundary = data.aws_iam_policy.demo_user_permissions_boundary.arn
   force_destroy        = true
 
-
   tags = {
-    # TODO: Get HCP details from variables
-    hcp-org-id     = "ffa120a5-d7b1-4b9c-be17-33a71e45f43f"
-    hcp-project-id = "d6c96d2b-616b-4cb8-b78c-9e17a78c2167"
+    hcp-org-id     = var.hcp_org_id
+    hcp-project-id = var.hcp_project_id
   }
 }
 
@@ -123,15 +121,37 @@ resource "aws_iam_policy_attachment" "audit" {
   policy_arn = aws_iam_policy.audit.arn
 }
 
+resource "aws_iam_access_key" "hcp_user" {
+  user = aws_iam_user.hcp_user.name
+}
 
+#
+# Kick off another Apply on the cluster workspace, to add the Cloudwatch monitoring
+# (this may not work, as our monitoring workspace might not have output yet)
+#
 
+provider "tfe" {
+  organization = "fancycorp"
+}
 
+data "tfe_workspace" "downstream" {
+  for_each = toset([
+    "vault"
+  ])
 
-# TODO: Create creds
-# Holding off on this for now, as we still have manual steps anyway...
-# (meaning I need direct acccess to these creds to do the config)
+  name = each.key
+}
+resource "tfe_workspace_run" "downstream" {
+  for_each = data.tfe_workspace.downstream
 
-# TODO: Configure HCP
-# Currently not possible:
-# https://registry.terraform.io/providers/hashicorp/hcp/latest/docs/resources/vault_cluster
-# does not accept cloudwatch config yet... and is also nested config for the hcp_vault_cluster resource
+  workspace_id = each.value.id
+
+  depends_on = [
+    aws_iam_access_key.hcp_user
+  ]
+
+  apply {
+    manual_confirm = false # Let TF confirm this itself
+    wait_for_run   = false # Fire-and-Forget
+  }
+}
