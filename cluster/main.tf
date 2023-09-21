@@ -46,6 +46,8 @@ module "hcp-vault" {
   cloud  = var.hcp_platform
   region = var.hcp_region
 
+  tier = var.hcp_vault_tier
+
   # To make demos easier
   public_endpoint = true
 

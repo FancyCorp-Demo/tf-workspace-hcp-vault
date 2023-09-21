@@ -23,3 +23,8 @@ variable "hcp_vault_cluster_name" {
   type    = string
   default = "aws-london"
 }
+
+variable "hcp_vault_tier" {
+  type    = string
+  default = "PLUS_SMALL"
+}
