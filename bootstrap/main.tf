@@ -146,12 +146,12 @@ module "tfc-auth" {
         vault_policy.admin.name
       ]
     },
-    {
-      workspace_name = "vault-config-azure"
-      token_policies = [
-        vault_policy.admin.name
-      ]
-    },
+    #    {
+    #      workspace_name = "vault-config-azure"
+    #      token_policies = [
+    #        vault_policy.admin.name
+    #      ]
+    #    },
   ]
 }
 
@@ -201,7 +201,7 @@ data "tfe_workspace" "downstream" {
   for_each = toset([
     "vault-config",
     "vault-config-aws",
-    "vault-config-azure",
+    #    "vault-config-azure",
   ])
 
   name = each.key
