@@ -22,7 +22,10 @@ terraform {
 # AWS Config
 #
 
-# Based on https://github.com/hashicorp/hc-sec-demos/blob/main/demos/vault/aws_secrets_engine/aws.tf
+# Based on:
+#   https://github.com/hashicorp/hc-sec-demos/blob/main/demos/vault/aws_secrets_engine/
+#   https://github.com/hashicorp/hc-sec-demos/blob/main/demos/vault/aws_auth_method/
+#
 # This means... if you're not a HashiCorp employee, don't use this. It won't work for you
 
 provider "aws" {
