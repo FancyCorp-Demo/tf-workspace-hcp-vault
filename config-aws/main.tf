@@ -27,6 +27,18 @@ terraform {
 
 provider "aws" {
   region = "eu-west-2"
+
+  default_tags {
+    tags = {
+      Name      = "HCP Vault Monitoring"
+      Owner     = "lucy.davinhart@hashicorp.com"
+      Purpose   = "TFC"
+      TTL       = "Ephemeral Workspace"
+      Terraform = "true"
+      Source    = "https://github.com/FancyCorp-Demo/tf-workspace-hcp-vault/tree/main/config-aws/"
+      Workspace = terraform.workspace
+    }
+  }
 }
 data "aws_caller_identity" "current" {}
 
