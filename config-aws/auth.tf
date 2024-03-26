@@ -30,7 +30,6 @@ resource "vault_aws_auth_backend_role" "role" {
     "arn:aws:iam::${data.aws_caller_identity.current.account_id}:*"
   ]
 
-
   token_ttl      = 60
   token_max_ttl  = 120
   token_policies = ["kv"]
@@ -60,4 +59,35 @@ path "kvv1/*" {
   capabilities = ["read"]
 }
 EOT
+}
+
+
+
+
+#
+# IAM Instance Profile to add to EC2 instances
+#
+
+resource "aws_iam_instance_profile" "test_profile" {
+  name = "vault-auth"
+  role = aws_iam_role.role.name
+}
+
+data "aws_iam_policy_document" "assume_role" {
+  statement {
+    effect = "Allow"
+
+    principals {
+      type        = "Service"
+      identifiers = ["ec2.amazonaws.com"]
+    }
+
+    actions = ["sts:AssumeRole"]
+  }
+}
+
+resource "aws_iam_role" "role" {
+  name               = "vault-auth"
+  path               = "/"
+  assume_role_policy = data.aws_iam_policy_document.assume_role.json
 }
