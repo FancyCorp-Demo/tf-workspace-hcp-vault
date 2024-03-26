@@ -22,7 +22,7 @@ resource "vault_aws_auth_backend_config_identity" "identity_config" {
 
 resource "vault_aws_auth_backend_role" "role" {
   backend   = vault_auth_backend.aws.path
-  role      = "vault-role-for-aws-ec2role"
+  role      = "test-role"
   auth_type = "iam"
 
   # Anything in my AWS Account
