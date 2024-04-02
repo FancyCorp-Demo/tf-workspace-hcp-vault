@@ -33,7 +33,7 @@ provider "aws" {
 
   default_tags {
     tags = {
-      Name      = "HCP Vault AWS Auth & Secrets"
+      Name      = "HCP Vault AWS Auth + Secrets"
       Owner     = "lucy.davinhart@hashicorp.com"
       Purpose   = "TFC"
       TTL       = "Ephemeral Workspace"
