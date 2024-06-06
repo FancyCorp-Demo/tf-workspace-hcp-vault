@@ -36,6 +36,7 @@ resource "hcp_vault_cluster" "this" {
 
 
 
+  min_vault_version = var.min_vault_version
 }
 
 resource "hcp_vault_cluster_admin_token" "terraform" {

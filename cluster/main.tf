@@ -48,6 +48,8 @@ module "hcp-vault" {
 
   tier = var.hcp_vault_tier
 
+  min_vault_version = var.min_vault_version
+
   # To make demos easier
   public_endpoint = true
 

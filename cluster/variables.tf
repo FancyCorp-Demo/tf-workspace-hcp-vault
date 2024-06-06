@@ -28,3 +28,9 @@ variable "hcp_vault_tier" {
   type    = string
   default = "PLUS_SMALL"
 }
+
+
+variable "min_vault_version" {
+  type    = string
+  default = null
+}

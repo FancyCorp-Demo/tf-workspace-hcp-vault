@@ -39,3 +39,8 @@ variable "cloudwatch_creds" {
   })
   default = null
 }
+
+variable "min_vault_version" {
+  type    = string
+  default = null
+}
