@@ -48,7 +48,13 @@ data "vault_generic_secret" "lookup_self" {
 }
 
 output "lookup_self" {
-  value = nonsensitive(data.vault_generic_secret.lookup_self.data_json)
+  value = nonsensitive(
+    merge(data.vault_generic_secret.lookup_self.data, {
+      # Remove the ID from the output, and then the rest is non-sensitive
+      "id" = "REDACTED",
+      }
+    )
+  )
 }
 
 
@@ -70,5 +76,11 @@ data "vault_generic_secret" "lookup_self_alias" {
 }
 
 output "lookup_self_alias" {
-  value = nonsensitive(data.vault_generic_secret.lookup_self_alias.data_json)
+  value = nonsensitive(
+    merge(data.vault_generic_secret.lookup_self_alias.data, {
+      # Remove the ID from the output, and then the rest is non-sensitive
+      "id" = "REDACTED",
+      }
+    )
+  )
 }
