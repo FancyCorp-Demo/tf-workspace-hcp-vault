@@ -118,7 +118,7 @@ resource "vault_policy" "admin" {
 
 module "tfc-auth" {
   source  = "hashi-strawb/terraform-cloud-jwt-auth/vault"
-  version = ">= 0.4.1"
+  version = ">= 0.5.0"
   #source = "./terraform-vault-terraform-cloud-jwt-auth"
 
   terraform = {
@@ -150,14 +150,13 @@ module "tfc-auth" {
       token_policies = [
         vault_policy.admin.name
       ]
-      only_tfc_env_vars = true
     },
   ]
 }
 
 module "tfc-auth-lmhd" {
   source  = "hashi-strawb/terraform-cloud-jwt-auth/vault"
-  version = ">= 0.3.0"
+  version = ">= 0.5.0"
   #source = "./terraform-vault-terraform-cloud-jwt-auth"
 
   terraform = {
@@ -186,7 +185,7 @@ module "tfc-auth-lmhd" {
 
 module "tfc-auth-self" {
   source  = "hashi-strawb/terraform-cloud-jwt-auth/vault"
-  version = ">= 0.2.1"
+  version = ">= 0.5.0"
   #source = "./terraform-vault-terraform-cloud-jwt-auth"
 
   terraform = {
