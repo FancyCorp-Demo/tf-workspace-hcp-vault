@@ -166,6 +166,7 @@ module "tfc-auth-lmhd" {
 
   vault = {
     addr      = "https://vault.lmhd.me"
+    namespace = "root"
     auth_path = "tfc/fancycorp"
 
     create_roles = false
