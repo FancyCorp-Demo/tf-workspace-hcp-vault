@@ -146,6 +146,12 @@ module "tfc-auth" {
         vault_policy.admin.name
       ]
     },
+    {
+      workspace_name = "vault-config-pki"
+      token_policies = [
+        vault_policy.admin.name
+      ]
+    },
     #    {
     #      workspace_name = "vault-config-azure"
     #      token_policies = [
