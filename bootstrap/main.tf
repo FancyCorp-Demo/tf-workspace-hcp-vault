@@ -165,8 +165,7 @@ module "tfc-auth-lmhd" {
   }
 
   vault = {
-    addr      = data.tfe_outputs.vault_cluster.values.vault_public_endpoint_url
-    namespace = data.tfe_outputs.vault_cluster.values.vault_namespace
+    addr      = "https://vault.lmhd.me"
     auth_path = "tfc/fancycorp"
 
     create_roles = false
