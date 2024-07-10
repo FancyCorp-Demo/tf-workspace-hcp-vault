@@ -74,7 +74,7 @@ provider "vault" {
 data "vault_generic_secret" "lookup_self_alias" {
   path = "auth/token/lookup-self"
 
-  alias = "LMHD"
+  provider = vault.LMHD
 }
 
 output "lookup_self_alias" {
