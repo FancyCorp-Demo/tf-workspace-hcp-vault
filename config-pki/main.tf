@@ -31,6 +31,10 @@ variable "tfc_vault_dynamic_credentials" {
   })
 }
 
+output "provider_creds" {
+  value = var.tfc_vault_dynamic_credentials
+}
+
 
 provider "vault" {
   // skip_child_token must be explicitly set to true as HCP Terraform manages the token lifecycle
