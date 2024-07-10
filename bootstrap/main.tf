@@ -244,6 +244,7 @@ resource "tfe_workspace_run" "downstream" {
   depends_on = [
     # downstream workspaces need auth
     module.tfc-auth,
+    module.tfc-auth-lmhd,
 
     # this workspace needs JWT auth too
     tfe_variable.vault_auth_method,
