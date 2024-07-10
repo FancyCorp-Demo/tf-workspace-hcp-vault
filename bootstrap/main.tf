@@ -201,6 +201,7 @@ data "tfe_workspace" "downstream" {
   for_each = toset([
     "vault-config",
     "vault-config-aws",
+    "vault-config-pki",
     #    "vault-config-azure",
   ])
 
