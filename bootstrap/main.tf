@@ -132,8 +132,7 @@ module "tfc-auth" {
   }
 
   roles = [
-    # The rest of the Vault config
-    # TODO: split this up by use-case
+    # The rest of the Vault config, split up by use-case
     {
       workspace_name = "vault-config"
       token_policies = [
@@ -152,14 +151,38 @@ module "tfc-auth" {
         vault_policy.admin.name
       ]
     },
-    #    {
-    #      workspace_name = "vault-config-azure"
-    #      token_policies = [
-    #        vault_policy.admin.name
-    #      ]
-    #    },
   ]
 }
+
+module "tfc-auth-lmhd" {
+  source  = "hashi-strawb/terraform-cloud-jwt-auth/vault"
+  version = ">= 0.3.0"
+  #source = "./terraform-vault-terraform-cloud-jwt-auth"
+
+  terraform = {
+    org   = "fancycorp"
+    alias = "LMHD"
+  }
+
+  vault = {
+    addr      = data.tfe_outputs.vault_cluster.values.vault_public_endpoint_url
+    namespace = data.tfe_outputs.vault_cluster.values.vault_namespace
+    auth_path = "tfc/fancycorp"
+
+    create_roles = false
+  }
+
+  roles = [
+    {
+      workspace_name = "vault-config-pki"
+      token_policies = [
+        vault_policy.admin.name
+      ]
+    },
+  ]
+}
+
+
 
 module "tfc-auth-self" {
   source  = "hashi-strawb/terraform-cloud-jwt-auth/vault"
@@ -208,7 +231,6 @@ data "tfe_workspace" "downstream" {
     "vault-config",
     "vault-config-aws",
     "vault-config-pki",
-    #    "vault-config-azure",
   ])
 
   name = each.key
