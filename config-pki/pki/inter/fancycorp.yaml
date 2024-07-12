@@ -1,0 +1,7 @@
+allowed_domains:
+- fancycorp.io
+allow_localhost: false
+allow_subdomains: true
+# 14/90 days
+ttl: 1209600
+max_ttl: 7776000

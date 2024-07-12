@@ -1,0 +1,2 @@
+allow_localhost: true
+allow_ip_sans: true
