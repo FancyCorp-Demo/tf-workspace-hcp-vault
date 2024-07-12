@@ -43,6 +43,11 @@ provider "vault" {
   }
 }
 
+locals {
+  vault_addr      = var.tfc_vault_dynamic_credentials.default.address
+  vault_namespace = var.tfc_vault_dynamic_credentials.default.namespace
+}
+
 
 provider "vault" {
   // skip_child_token must be explicitly set to true as HCP Terraform manages the token lifecycle
@@ -75,8 +80,8 @@ resource "vault_mount" "pki_inter" {
 
 resource "vault_pki_secret_backend_config_urls" "pki_inter_config_urls" {
   backend                 = vault_mount.pki_inter.path
-  issuing_certificates    = ["https://vault.lmhd.me/v1/${vault_mount.pki_inter.path}/ca"]
-  crl_distribution_points = ["https://vault.lmhd.me/v1/${vault_mount.pki_inter.path}/crl"]
+  issuing_certificates    = ["${local.vault_addr}/v1/${local.vault_namespace}/${vault_mount.pki_inter.path}/ca"]
+  crl_distribution_points = ["${local.vault_addr}/v1/${local.vault_namespace}/${vault_mount.pki_inter.path}/crl"]
 }
 
 
@@ -94,7 +99,7 @@ resource "vault_pki_secret_backend_intermediate_cert_request" "pki_inter" {
   backend = vault_mount.pki_inter.path
 
   type        = "internal"
-  common_name = "LMHD Intermediary CA (${time_rotating.pki_inter.id})"
+  common_name = "FancyCorp Intermediary CA (${time_rotating.pki_inter.id})"
 }
 
 
