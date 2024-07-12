@@ -137,7 +137,7 @@ data "tls_certificate" "pki_inter" {
 resource "vault_pki_secret_backend_config_issuers" "pki_inter" {
   backend = vault_mount.pki_inter.path
 
-  default = one(vault_pki_secret_backend_intermediate_set_signed.pki_inter.imported_issuers)
+  default = vault_pki_secret_backend_intermediate_set_signed.pki_inter.imported_issuers[0]
 }
 
 
