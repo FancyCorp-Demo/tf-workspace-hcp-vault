@@ -43,20 +43,6 @@ provider "vault" {
   }
 }
 
-data "vault_generic_secret" "lookup_self" {
-  path = "auth/token/lookup-self"
-}
-
-output "lookup_self" {
-  value = nonsensitive(
-    merge(data.vault_generic_secret.lookup_self.data, {
-      # Remove the ID from the output, and then the rest is non-sensitive
-      "id" = "REDACTED",
-      }
-    )
-  )
-}
-
 
 provider "vault" {
   // skip_child_token must be explicitly set to true as HCP Terraform manages the token lifecycle
@@ -71,18 +57,119 @@ provider "vault" {
 }
 
 
-data "vault_generic_secret" "lookup_self_alias" {
-  path = "auth/token/lookup-self"
+
+#
+# Intermediary CA
+#
+
+resource "vault_mount" "pki_inter" {
+  path = "pki/inter"
+  type = "pki"
+
+  # 1 day
+  default_lease_ttl_seconds = 60 * 60 * 24
+
+  # 1 year
+  max_lease_ttl_seconds = 60 * 60 * 24 * 365
+}
+
+resource "vault_pki_secret_backend_config_urls" "pki_inter_config_urls" {
+  backend                 = vault_mount.pki_inter.path
+  issuing_certificates    = ["https://vault.lmhd.me/v1/${vault_mount.pki_inter.path}/ca"]
+  crl_distribution_points = ["https://vault.lmhd.me/v1/${vault_mount.pki_inter.path}/crl"]
+}
+
+
+#
+# Generate Inter CSR
+#
+
+resource "time_rotating" "pki_inter" {
+  rotation_months = 4
+}
+
+resource "vault_pki_secret_backend_intermediate_cert_request" "pki_inter" {
+  depends_on = [vault_mount.pki_inter]
+
+  backend = vault_mount.pki_inter.path
+
+  type        = "internal"
+  common_name = "LMHD Intermediary CA (${time_rotating.pki_inter.id})"
+}
+
+
+
+#
+# Root signs Inter
+#
+
+resource "vault_pki_secret_backend_root_sign_intermediate" "pki_root_inter" {
+  depends_on = [vault_pki_secret_backend_intermediate_cert_request.pki_inter]
+
+  backend = "pki/root"
+
+  csr         = vault_pki_secret_backend_intermediate_cert_request.pki_inter.csr
+  common_name = "FancyCorp Intermediary CA"
+  format      = "pem_bundle"
+  ttl         = 60 * 60 * 24 * 365
 
   provider = vault.LMHD
 }
 
-output "lookup_self_alias" {
-  value = nonsensitive(
-    merge(data.vault_generic_secret.lookup_self_alias.data, {
-      # Remove the ID from the output, and then the rest is non-sensitive
-      "id" = "REDACTED",
-      }
-    )
-  )
+
+# Set Inter CA
+
+resource "vault_pki_secret_backend_intermediate_set_signed" "pki_inter" {
+  backend = vault_mount.pki_inter.path
+
+  certificate = <<-EOF
+${vault_pki_secret_backend_root_sign_intermediate.pki_root_inter.certificate}
+${vault_pki_secret_backend_root_sign_intermediate.pki_root_inter.issuing_ca}
+EOF
+}
+
+data "tls_certificate" "pki_inter" {
+  content = vault_pki_secret_backend_root_sign_intermediate.pki_root_inter.certificate
+}
+
+
+# Ensure that the default issuer is set to the latest issuer
+resource "vault_pki_secret_backend_config_issuers" "pki_inter" {
+  backend = vault_mount.pki_inter.path
+
+  default = one(vault_pki_secret_backend_intermediate_set_signed.pki_inter.imported_issuers)
+}
+
+
+# TODO: CV Check, expiry is sufficiently in the future
+# (for this, expiry is more than today is fine... but we do next month to give buffer room)
+
+
+# Autotidy
+
+resource "vault_generic_endpoint" "pki_inter-auto-tidy" {
+  path = "${vault_mount.pki_inter.path}/config/auto-tidy"
+
+  data_json = <<EOT
+{
+  "acme_account_safety_buffer": 1,
+  "enabled": true,
+  "interval_duration": 43200,
+  "issuer_safety_buffer": 10368000,
+  "maintain_stored_certificate_counts": false,
+  "pause_duration": "0s",
+  "publish_stored_certificate_count_metrics": false,
+  "revocation_queue_safety_buffer": 172800,
+  "safety_buffer": 259200,
+  "tidy_acme": false,
+  "tidy_cert_metadata": false,
+  "tidy_cert_store": true,
+  "tidy_cross_cluster_revoked_certs": true,
+  "tidy_expired_issuers": true,
+  "tidy_move_legacy_ca_bundle": true,
+  "tidy_revocation_queue": true,
+  "tidy_revoked_cert_issuer_associations": true,
+  "tidy_revoked_certs": true
+}
+EOT
 }
