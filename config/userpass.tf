@@ -35,6 +35,22 @@ resource "vault_generic_endpoint" "admin" {
 EOT
 }
 
+#
+# HVS App + Secret
+#
+
+resource "hcp_vault_secrets_app" "admin_password" {
+  app_name    = "vault-admin"
+  description = "Admin password for HCP Vault Dedicated"
+}
+
+resource "hcp_vault_secrets_secret" "password" {
+  app_name     = hcp_vault_secrets_app.admin_password.app_name
+  secret_name  = "password"
+  secret_value = random_pet.admin_password.id
+}
+
+
 output "admin_password" {
   value = random_pet.admin_password.id
 }
