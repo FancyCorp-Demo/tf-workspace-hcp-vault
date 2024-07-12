@@ -44,13 +44,20 @@ resource "hcp_vault_secrets_app" "admin_password" {
   description = "Admin password for HCP Vault Dedicated"
 }
 
+resource "hcp_vault_secrets_secret" "username" {
+  app_name     = hcp_vault_secrets_app.admin_password.app_name
+  secret_name  = "username"
+  secret_value = "admin"
+}
+
 resource "hcp_vault_secrets_secret" "password" {
   app_name     = hcp_vault_secrets_app.admin_password.app_name
   secret_name  = "password"
   secret_value = random_pet.admin_password.id
 }
 
+data "hcp_project" "this" {}
 
 output "admin_password" {
-  value = random_pet.admin_password.id
+  value = "https://portal.cloud.hashicorp.com/services/secrets/apps/${hcp_vault_secrets_app.admin_password.app_name}/secrets?project_id=${data.hcp_project.this.resource_id}"
 }
