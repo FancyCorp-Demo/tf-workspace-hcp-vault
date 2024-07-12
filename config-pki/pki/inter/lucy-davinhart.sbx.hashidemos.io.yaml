@@ -1,0 +1,8 @@
+allowed_domains:
+- lucy-davinhart.sbx.hashidemos.io
+allow_localhost: false
+allow_subdomains: true
+# 14/90 days
+ttl: 1209600
+max_ttl: 7776000
+
