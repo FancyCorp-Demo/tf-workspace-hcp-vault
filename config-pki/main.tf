@@ -155,6 +155,8 @@ resource "vault_pki_secret_backend_config_issuers" "pki_inter" {
 resource "vault_generic_endpoint" "pki_inter-auto-tidy" {
   path = "${vault_mount.pki_inter.path}/config/auto-tidy"
 
+  disable_delete = true
+
   data_json = <<EOT
 {
   "acme_account_safety_buffer": 1,
