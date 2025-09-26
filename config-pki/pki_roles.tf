@@ -10,6 +10,10 @@ resource "vault_pki_secret_backend_role" "pki_roles" {
   # For each YAML file we found...
   for_each = local.pki_role_files
 
+  depends_on = [
+    vault_mount.pki_inter
+  ]
+
   # Use the "backend" key if specified
   # otherwise fall back to the directory name
   backend = lookup(
