@@ -127,7 +127,7 @@ module "tfc-auth" {
 
   vault = {
     addr      = data.tfe_outputs.vault_cluster.values.vault_public_endpoint_url
-    namespace = data.tfe_outputs.vault_cluster.values.vault_namespace
+    namespace = nonsensitive(data.tfe_outputs.vault_cluster.values.vault_namespace)
     auth_path = "tfc/fancycorp"
   }
 
@@ -194,7 +194,7 @@ module "tfc-auth-self" {
 
   vault = {
     addr      = data.tfe_outputs.vault_cluster.values.vault_public_endpoint_url
-    namespace = data.tfe_outputs.vault_cluster.values.vault_namespace
+    namespace = nonsensitive(data.tfe_outputs.vault_cluster.values.vault_namespace)
     auth_path = "tfc/fancycorp-bootstrap" # can't have two separate JWT auth mounts
   }
 
