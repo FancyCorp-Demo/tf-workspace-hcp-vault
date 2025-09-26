@@ -35,29 +35,9 @@ resource "vault_generic_endpoint" "admin" {
 EOT
 }
 
-#
-# HVS App + Secret
-#
-
-resource "hcp_vault_secrets_app" "admin_password" {
-  app_name    = "vault-admin"
-  description = "Admin password for HCP Vault Dedicated"
+output "admin_username" {
+  value = "admin"
 }
-
-resource "hcp_vault_secrets_secret" "username" {
-  app_name     = hcp_vault_secrets_app.admin_password.app_name
-  secret_name  = "username"
-  secret_value = "admin"
-}
-
-resource "hcp_vault_secrets_secret" "password" {
-  app_name     = hcp_vault_secrets_app.admin_password.app_name
-  secret_name  = "password"
-  secret_value = random_pet.admin_password.id
-}
-
-data "hcp_project" "this" {}
-
 output "admin_password" {
-  value = "https://portal.cloud.hashicorp.com/services/secrets/apps/${hcp_vault_secrets_app.admin_password.app_name}/secrets?project_id=${data.hcp_project.this.resource_id}"
+  value = random_pet.admin_password.id
 }
